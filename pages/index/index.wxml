@@ -1,0 +1,86 @@
+<!-- pages/index/index.wxml - 首页：训练提醒 + 打卡 -->
+
+<view class="container">
+  <!-- 顶部状态栏 -->
+  <view class="status-bar">
+    <text class="date">{{currentDate}}</text>
+    <text class="plan-name">{{planName}}</text>
+  </view>
+
+  <!-- 今日训练部位卡片 -->
+  <view class="card training-card">
+    <text class="label">今日训练部位</text>
+    <text class="today-part">{{todayPart}}</text>
+    <text class="tip">加油！坚持就是胜利！</text>
+  </view>
+
+  <!-- 打卡按钮 -->
+  <view class="punch-section">
+    <button
+      class="btn-punch {{isPunchedToday ? 'punch-disabled' : ''}}"
+      bindtap="onPunch"
+      disabled="{{isPunchedToday}}"
+    >
+      {{isPunchedToday ? '今日已打卡' : '点击打卡'}}
+    </button>
+    <text class="punch-tip" wx:if="{{isPunchedToday}}">打卡时间：{{punchTime}}</text>
+  </view>
+
+  <!-- 明日训练部位预览 -->
+  <view class="card tomorrow-card" wx:if="{{isPunchedToday}}">
+    <text class="label">明日训练部位</text>
+    <text class="tomorrow-part">{{tomorrowPart}}</text>
+    <text class="tip">提前做好准备哦~</text>
+  </view>
+
+  <!-- 训练计划切换入口 -->
+  <view class="card plan-card">
+    <view class="flex-between">
+      <text class="label">当前训练计划</text>
+      <view class="change-plan" bindtap="switchToPlanPage">切换计划</view>
+    </view>
+    <text class="plan-desc">{{planDescription}}</text>
+    <view class="progress">
+      <text class="progress-text">训练进度</text>
+      <progress
+        percent="{{progressPercent}}"
+        stroke-width="12"
+        activeColor="#52c41a"
+        backgroundColor="#e6f7e6"
+        active
+      />
+      <text class="progress-percent">{{progressPercent}}%</text>
+    </view>
+  </view>
+
+  <!-- 睡眠记录入口 -->
+  <view class="card sleep-card">
+    <view class="sleep-link" bindtap="switchToSleepPage">
+      <view class="flex-between">
+        <view>
+          <text class="label">睡眠记录</text>
+          <text class="sleep-tip">记录睡眠，助力恢复</text>
+        </view>
+        <text class="icon">→</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 组队打卡入口 -->
+  <view class="card team-card">
+    <view class="team-link" bindtap="switchToTeamPage">
+      <view class="flex-between">
+        <view>
+          <text class="label">组队打卡</text>
+          <text class="team-tip">和好友一起，互相督促</text>
+        </view>
+        <text class="icon">→</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部提示 -->
+  <view class="footer-tip">
+    <text>坚持打卡，遇见更好的自己！</text>
+  </view>
+</view>

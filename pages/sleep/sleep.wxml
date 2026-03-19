@@ -1,0 +1,138 @@
+<!-- pages/sleep/sleep.wxml - 睡眠记录页 -->
+
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-title">
+    <text>睡眠记录</text>
+    <text class="subtitle">记录睡眠情况，助力身体恢复</text>
+  </view>
+
+  <!-- 睡眠时长选择 -->
+  <view class="section">
+    <text class="section-title">睡眠时长</text>
+    <text class="section-tip">请选择昨晚的睡眠时长</text>
+    <view class="duration-options">
+      <view
+        class="duration-option {{selectedDuration === 0 ? 'selected' : ''}}"
+        bindtap="selectDuration"
+        data-duration="0"
+      >
+        <text class="duration-text">5小时及以下</text>
+      </view>
+      <view
+        class="duration-option {{selectedDuration === 1 ? 'selected' : ''}}"
+        bindtap="selectDuration"
+        data-duration="1"
+      >
+        <text class="duration-text">6小时</text>
+      </view>
+      <view
+        class="duration-option {{selectedDuration === 2 ? 'selected' : ''}}"
+        bindtap="selectDuration"
+        data-duration="2"
+      >
+        <text class="duration-text">7小时</text>
+      </view>
+      <view
+        class="duration-option {{selectedDuration === 3 ? 'selected' : ''}}"
+        bindtap="selectDuration"
+        data-duration="3"
+      >
+        <text class="duration-text">8小时</text>
+      </view>
+      <view
+        class="duration-option {{selectedDuration === 4 ? 'selected' : ''}}"
+        bindtap="selectDuration"
+        data-duration="4"
+      >
+        <text class="duration-text">9小时及以上</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 体感选择 -->
+  <view class="section">
+    <text class="section-title">睡眠体感</text>
+    <text class="section-tip">醒来后的感觉如何？</text>
+    <view class="feeling-options">
+      <view
+        class="feeling-option {{selectedFeeling === 0 ? 'selected' : ''}}"
+        bindtap="selectFeeling"
+        data-feeling="0"
+      >
+        <text class="feeling-icon">😊</text>
+        <text class="feeling-text">神清气爽</text>
+      </view>
+      <view
+        class="feeling-option {{selectedFeeling === 1 ? 'selected' : ''}}"
+        bindtap="selectFeeling"
+        data-feeling="1"
+      >
+        <text class="feeling-icon">🙂</text>
+        <text class="feeling-text">还算不错</text>
+      </view>
+      <view
+        class="feeling-option {{selectedFeeling === 2 ? 'selected' : ''}}"
+        bindtap="selectFeeling"
+        data-feeling="2"
+      >
+        <text class="feeling-icon">😐</text>
+        <text class="feeling-text">没睡够</text>
+      </view>
+      <view
+        class="feeling-option {{selectedFeeling === 3 ? 'selected' : ''}}"
+        bindtap="selectFeeling"
+        data-feeling="3"
+      >
+        <text class="feeling-icon">😨</text>
+        <text class="feeling-text">噩梦连连</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 保存按钮 -->
+  <button
+    class="save-btn"
+    bindtap="saveSleepRecord"
+    disabled="{{!isFormComplete}}"
+  >
+    {{isFormComplete ? '保存记录' : '请选择时长和体感'}}
+  </button>
+
+  <!-- 最近7天记录（可选加分项） -->
+  <view class="section" wx:if="{{sleepRecords.length > 0}}">
+    <view class="section-header">
+      <text class="section-title">最近7天记录</text>
+      <text class="records-count">共{{sleepRecords.length}}条记录</text>
+    </view>
+    <view class="records-list">
+      <view class="record-card" wx:for="{{sleepRecords}}" wx:key="date">
+        <view class="record-date">
+          <text class="date">{{item.date}}</text>
+          <text class="weekday">{{item.weekday}}</text>
+        </view>
+        <view class="record-details">
+          <text class="duration">睡眠时长：{{item.durationText}}</text>
+          <text class="feeling">睡眠体感：{{item.feelingText}}</text>
+        </view>
+        <text class="feeling-icon-small">{{item.feelingIcon}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态提示 -->
+  <view class="empty-state" wx:if="{{sleepRecords.length === 0}}">
+    <text class="empty-icon">😴</text>
+    <text class="empty-text">暂无睡眠记录</text>
+    <text class="empty-tip">记录睡眠情况，帮助您更好地调整训练计划</text>
+  </view>
+
+  <!-- 健康小贴士 -->
+  <view class="tips">
+    <text class="tips-title">💡 健康小贴士</text>
+    <text class="tip">• 成年人建议每天睡眠7-9小时</text>
+    <text class="tip">• 保持规律的睡眠时间有助于身体恢复</text>
+    <text class="tip">• 睡前避免使用电子设备，有助于提高睡眠质量</text>
+    <text class="tip">• 适度的运动可以改善睡眠，但睡前3小时应避免剧烈运动</text>
+  </view>
+</view>

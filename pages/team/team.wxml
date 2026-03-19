@@ -1,0 +1,210 @@
+<!--pages/team/team.wxml-->
+<view class="container">
+  <!-- 加载状态 -->
+  <view wx:if="{{isLoading}}" class="loading">
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 没有团队的情况 -->
+  <view wx:if="{{!hasTeam && !showJoinForm && !isLoading}}" class="no-team">
+    <view class="card">
+      <view class="title">组队打卡</view>
+      <view class="description">
+        和好友一起打卡，互相督促，坚持健身！
+      </view>
+
+      <view class="team-illustration">
+        <view class="illustration-icon">👥</view>
+        <view class="illustration-text">两人一组，互相激励</view>
+      </view>
+
+      <view class="action-buttons">
+        <button class="btn btn-primary" bindtap="createTeam" hover-class="btn-hover">
+          创建团队
+        </button>
+        <button class="btn btn-secondary" bindtap="showJoinForm" hover-class="btn-hover">
+          加入团队
+        </button>
+      </view>
+
+      <view class="team-tips">
+        <view class="tip-item">
+          <view class="tip-icon">✅</view>
+          <view class="tip-text">创建团队后生成邀请码分享给好友</view>
+        </view>
+        <view class="tip-item">
+          <view class="tip-icon">✅</view>
+          <view class="tip-text">好友输入邀请码即可加入你的团队</view>
+        </view>
+        <view class="tip-item">
+          <view class="tip-icon">✅</view>
+          <view class="tip-text">互相查看打卡进度，一起坚持</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加入团队表单 -->
+  <view wx:if="{{!hasTeam && showJoinForm && !isLoading}}" class="join-form">
+    <view class="card">
+      <view class="title">加入团队</view>
+      <view class="description">
+        请输入好友分享的6位邀请码
+      </view>
+
+      <view class="form-group">
+        <input
+          class="input"
+          type="text"
+          placeholder="请输入6位邀请码"
+          maxlength="6"
+          value="{{teamCode}}"
+          bindinput="onTeamCodeInput"
+          placeholder-class="input-placeholder"
+        />
+        <view class="input-hint">邀请码为6位数字或大写字母</view>
+      </view>
+
+      <view class="form-buttons">
+        <button class="btn btn-secondary" bindtap="hideJoinForm" hover-class="btn-hover">
+          取消
+        </button>
+        <button class="btn btn-primary" bindtap="joinTeam" hover-class="btn-hover">
+          确认加入
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 有团队的情况 -->
+  <view wx:if="{{hasTeam && !isLoading}}" class="has-team">
+    <!-- 团队状态卡片 -->
+    <view class="card team-status-card">
+      <view class="team-header">
+        <view class="team-title">
+          <text class="team-icon">👥</text>
+          <text>我的团队</text>
+        </view>
+        <view class="team-actions">
+          <button class="btn-icon" bindtap="copyInviteCode">
+            <text class="icon">📋</text>
+            <text class="btn-text">复制邀请码</text>
+          </button>
+          <button class="btn-icon" bindtap="shareTeam">
+            <text class="icon">📤</text>
+            <text class="btn-text">分享</text>
+          </button>
+        </view>
+      </view>
+
+      <view class="team-info">
+        <view class="info-item">
+          <text class="info-label">邀请码：</text>
+          <text class="info-value team-code">{{teamInfo.teamCode}}</text>
+        </view>
+        <view class="info-item">
+          <text class="info-label">状态：</text>
+          <text class="info-value status-badge {{teamInfo.status === 'active' ? 'active' : 'waiting'}}">
+            {{teamInfo.status === 'active' ? '已组队' : '等待加入'}}
+          </text>
+        </view>
+        <view class="info-item">
+          <text class="info-label">创建时间：</text>
+          <text class="info-value">{{teamInfo.createdAt}}</text>
+        </view>
+      </view>
+
+      <!-- 今日打卡状态 -->
+      <view class="today-punch-section">
+        <view class="section-title">今日打卡状态</view>
+        <view class="punch-status-grid">
+          <view class="punch-status-item">
+            <view class="punch-avatar self">我</view>
+            <view class="punch-status">
+              <text wx:if="{{todayPunch.self.punched}}" class="punched">✅ 已打卡</text>
+              <text wx:else class="not-punched">⏰ 未打卡</text>
+              <text wx:if="{{todayPunch.self.punchTime}}" class="punch-time">
+                {{todayPunch.self.punchTime}}
+              </text>
+            </view>
+          </view>
+
+          <view class="punch-status-item">
+            <view class="punch-avatar partner">友</view>
+            <view class="punch-status">
+              <text wx:if="{{todayPunch.partner.punched}}" class="punched">✅ 已打卡</text>
+              <text wx:else class="not-punched">⏰ 未打卡</text>
+              <text wx:if="{{todayPunch.partner.punchTime}}" class="punch-time">
+                {{todayPunch.partner.punchTime}}
+              </text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 标签页切换 -->
+      <view class="tabs">
+        <view class="tab {{activeTab === 'status' ? 'active' : ''}}" data-tab="status" bindtap="switchTab">
+          团队状态
+        </view>
+        <view class="tab {{activeTab === 'records' ? 'active' : ''}}" data-tab="records" bindtap="switchTab">
+          打卡记录
+        </view>
+      </view>
+
+      <!-- 团队状态标签页 -->
+      <view wx:if="{{activeTab === 'status'}}" class="tab-content">
+        <view class="team-stats">
+          <view class="stat-item">
+            <text class="stat-value">{{teamPunchRecords.length}}</text>
+            <text class="stat-label">总打卡次数</text>
+          </view>
+          <view class="stat-item">
+            <text class="stat-value">2</text>
+            <text class="stat-label">团队成员</text>
+          </view>
+          <view class="stat-item">
+            <text class="stat-value">{{teamInfo.status === 'active' ? '100%' : '50%'}}</text>
+            <text class="stat-label">组队进度</text>
+          </view>
+        </view>
+
+        <view class="team-actions-full">
+          <button class="btn btn-warning" bindtap="leaveTeam" hover-class="btn-hover">
+            退出团队
+          </button>
+        </view>
+      </view>
+
+      <!-- 打卡记录标签页 -->
+      <view wx:if="{{activeTab === 'records'}}" class="tab-content">
+        <view wx:if="{{teamPunchRecords.length === 0}}" class="empty-records">
+          <text class="empty-icon">📊</text>
+          <text class="empty-text">暂无打卡记录</text>
+        </view>
+
+        <view wx:else class="punch-records">
+          <view wx:for="{{teamPunchRecords}}" wx:key="date" class="record-item">
+            <view class="record-date">
+              <text class="date">{{item.date}}</text>
+              <text class="weekday">{{getWeekday(item.date)}}</text>
+            </view>
+            <view class="record-details">
+              <view class="record-user">
+                <text class="user-avatar {{item.userOpenId === currentUserOpenId ? 'self' : 'partner'}}">
+                  {{item.userOpenId === currentUserOpenId ? '我' : '友'}}
+                </text>
+                <text class="user-action">打卡了</text>
+                <text class="user-part">{{item.part}}</text>
+              </view>
+              <view class="record-time">
+                <text class="time-icon">🕒</text>
+                <text class="time">{{item.punchTime}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

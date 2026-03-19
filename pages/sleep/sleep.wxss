@@ -1,0 +1,282 @@
+/* pages/sleep/sleep.wxss - 睡眠记录页样式 */
+
+.container {
+  padding: 32rpx;
+  background-color: #ffffff;
+  min-height: 100vh;
+}
+
+/* 页面标题 */
+.page-title {
+  text-align: center;
+  margin-bottom: 48rpx;
+}
+
+.page-title text:first-child {
+  display: block;
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #1890ff;
+  margin-bottom: 12rpx;
+}
+
+.subtitle {
+  display: block;
+  font-size: 28rpx;
+  color: #666666;
+}
+
+/* 区块样式 */
+.section {
+  background-color: #ffffff;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin-bottom: 32rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+  border: 1rpx solid #f0f0f0;
+}
+
+.section-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 8rpx;
+}
+
+.section-tip {
+  display: block;
+  font-size: 24rpx;
+  color: #999999;
+  margin-bottom: 24rpx;
+}
+
+/* 睡眠时长选项 */
+.duration-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.duration-option {
+  flex: 1;
+  min-width: 30%;
+  background-color: #e6f7ff;
+  border: 2rpx solid #91d5ff;
+  border-radius: 16rpx;
+  padding: 24rpx 16rpx;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.duration-option.selected {
+  background-color: #1890ff;
+  border-color: #1890ff;
+}
+
+.duration-option:active {
+  opacity: 0.8;
+  transform: scale(0.98);
+}
+
+.duration-text {
+  font-size: 28rpx;
+  color: #1890ff;
+  font-weight: 500;
+}
+
+.duration-option.selected .duration-text {
+  color: #ffffff;
+}
+
+/* 体感选项 */
+.feeling-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24rpx;
+}
+
+.feeling-option {
+  flex: 1;
+  min-width: 40%;
+  background-color: #f6ffed;
+  border: 2rpx solid #b7eb8f;
+  border-radius: 16rpx;
+  padding: 32rpx 16rpx;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.feeling-option.selected {
+  background-color: #52c41a;
+  border-color: #52c41a;
+}
+
+.feeling-option:active {
+  opacity: 0.8;
+  transform: scale(0.98);
+}
+
+.feeling-icon {
+  display: block;
+  font-size: 64rpx;
+  margin-bottom: 12rpx;
+}
+
+.feeling-text {
+  font-size: 24rpx;
+  color: #52c41a;
+  font-weight: 500;
+}
+
+.feeling-option.selected .feeling-text {
+  color: #ffffff;
+}
+
+/* 保存按钮 */
+.save-btn {
+  background-color: #1890ff;
+  color: #ffffff;
+  font-size: 32rpx;
+  font-weight: bold;
+  padding: 28rpx;
+  border-radius: 48rpx;
+  border: none;
+  margin: 32rpx 0 48rpx;
+  width: 100%;
+}
+
+.save-btn:disabled {
+  background-color: #cccccc;
+  color: #999999;
+}
+
+.save-btn:active:not(:disabled) {
+  opacity: 0.8;
+  transform: scale(0.98);
+}
+
+/* 最近7天记录 */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.records-count {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.records-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.record-card {
+  background-color: #f6ffed;
+  border: 1rpx solid #b7eb8f;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.record-date {
+  flex: 1;
+}
+
+.record-date .date {
+  display: block;
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 4rpx;
+}
+
+.record-date .weekday {
+  display: block;
+  font-size: 22rpx;
+  color: #999999;
+}
+
+.record-details {
+  flex: 2;
+  padding-left: 24rpx;
+}
+
+.record-details .duration {
+  display: block;
+  font-size: 24rpx;
+  color: #666666;
+  margin-bottom: 4rpx;
+}
+
+.record-details .feeling {
+  display: block;
+  font-size: 24rpx;
+  color: #666666;
+}
+
+.feeling-icon-small {
+  font-size: 40rpx;
+  margin-left: 16rpx;
+}
+
+/* 空状态提示 */
+.empty-state {
+  text-align: center;
+  padding: 64rpx 32rpx;
+  background-color: #fafafa;
+  border-radius: 16rpx;
+  margin: 32rpx 0;
+}
+
+.empty-icon {
+  display: block;
+  font-size: 80rpx;
+  margin-bottom: 24rpx;
+}
+
+.empty-text {
+  display: block;
+  font-size: 32rpx;
+  color: #666666;
+  font-weight: bold;
+  margin-bottom: 12rpx;
+}
+
+.empty-tip {
+  display: block;
+  font-size: 24rpx;
+  color: #999999;
+  line-height: 1.5;
+}
+
+/* 健康小贴士 */
+.tips {
+  background-color: #fffbe6;
+  border: 1rpx solid #ffe58f;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-top: 32rpx;
+}
+
+.tips-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #faad14;
+  margin-bottom: 16rpx;
+}
+
+.tip {
+  display: block;
+  font-size: 24rpx;
+  color: #666666;
+  margin-bottom: 8rpx;
+  line-height: 1.5;
+}

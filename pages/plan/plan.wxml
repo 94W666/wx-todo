@@ -1,0 +1,81 @@
+<!-- pages/plan/plan.wxml - 训练计划选择页 -->
+
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-title">
+    <text>选择训练计划</text>
+    <text class="subtitle">选择后将从第一个部位开始计算训练进度</text>
+  </view>
+
+  <!-- 五分化训练选项 -->
+  <view
+    class="plan-option {{selectedPlan === 'fiveSplit' ? 'selected' : ''}}"
+    bindtap="selectPlan"
+    data-plan="fiveSplit"
+  >
+    <view class="plan-header">
+      <text class="plan-name">五分化训练</text>
+      <text class="plan-tag">经典</text>
+    </view>
+    <text class="plan-desc">按「胸 → 背 → 肩 → 臂 → 腿」的顺序循环，每天对应 1 个部位</text>
+    <view class="plan-parts">
+      <text class="part-tag">胸</text>
+      <text class="part-tag">背</text>
+      <text class="part-tag">肩</text>
+      <text class="part-tag">臂</text>
+      <text class="part-tag">腿</text>
+    </view>
+    <view class="plan-footer">
+      <text class="plan-tip">适合有经验的健身爱好者</text>
+      <text class="check-icon" wx:if="{{selectedPlan === 'fiveSplit'}}">✓</text>
+    </view>
+  </view>
+
+  <!-- 三分化训练选项 -->
+  <view
+    class="plan-option {{selectedPlan === 'threeSplit' ? 'selected' : ''}}"
+    bindtap="selectPlan"
+    data-plan="threeSplit"
+  >
+    <view class="plan-header">
+      <text class="plan-name">三分化训练</text>
+      <text class="plan-tag">高效</text>
+    </view>
+    <text class="plan-desc">按「推（胸 + 肩 + 三头） → 拉（背 + 二头） → 腿」的顺序循环，每天对应 1 个组合部位</text>
+    <view class="plan-parts">
+      <text class="part-tag">推</text>
+      <text class="part-tag">拉</text>
+      <text class="part-tag">腿</text>
+    </view>
+    <view class="plan-footer">
+      <text class="plan-tip">适合时间有限的上班族</text>
+      <text class="check-icon" wx:if="{{selectedPlan === 'threeSplit'}}">✓</text>
+    </view>
+  </view>
+
+  <!-- 当前计划提示 -->
+  <view class="current-plan-card" wx:if="{{currentPlan}}">
+    <text class="label">当前计划</text>
+    <text class="current-plan-name">{{currentPlanName}}</text>
+    <text class="current-part">当前训练部位：{{currentPart}}</text>
+    <text class="next-part">下一个部位：{{nextPart}}</text>
+  </view>
+
+  <!-- 确认按钮 -->
+  <button
+    class="confirm-btn"
+    bindtap="confirmPlan"
+    disabled="{{!selectedPlan || selectedPlan === currentPlan}}"
+  >
+    {{selectedPlan === currentPlan ? '当前已选择此计划' : '确认选择'}}
+  </button>
+
+  <!-- 注意事项 -->
+  <view class="notice">
+    <text class="notice-title">注意事项</text>
+    <text class="notice-item">• 切换计划将重置训练进度，请谨慎操作</text>
+    <text class="notice-item">• 建议每周至少训练3次，保持连续性</text>
+    <text class="notice-item">• 训练前后注意热身和拉伸，预防受伤</text>
+    <text class="notice-item">• 可根据自身情况适当调整训练强度</text>
+  </view>
+</view>

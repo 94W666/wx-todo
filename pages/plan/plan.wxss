@@ -1,0 +1,193 @@
+/* pages/plan/plan.wxss - 训练计划选择页样式 */
+
+.container {
+  padding: 32rpx;
+  background-color: #ffffff;
+  min-height: 100vh;
+}
+
+/* 页面标题 */
+.page-title {
+  text-align: center;
+  margin-bottom: 48rpx;
+}
+
+.page-title text:first-child {
+  display: block;
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 12rpx;
+}
+
+.subtitle {
+  display: block;
+  font-size: 28rpx;
+  color: #666666;
+}
+
+/* 训练计划选项 */
+.plan-option {
+  background-color: #ffffff;
+  border: 4rpx solid #e8e8e8;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  margin-bottom: 32rpx;
+  transition: all 0.3s;
+}
+
+.plan-option.selected {
+  border-color: #52c41a;
+  background-color: #e6f7e6;
+  box-shadow: 0 8rpx 32rpx rgba(82, 196, 26, 0.1);
+}
+
+.plan-option:active {
+  opacity: 0.9;
+  transform: scale(0.995);
+}
+
+.plan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.plan-name {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.plan-tag {
+  font-size: 22rpx;
+  color: #ffffff;
+  background-color: #52c41a;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+}
+
+.plan-desc {
+  display: block;
+  font-size: 28rpx;
+  color: #666666;
+  line-height: 1.5;
+  margin-bottom: 24rpx;
+}
+
+.plan-parts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.part-tag {
+  font-size: 24rpx;
+  color: #52c41a;
+  background-color: #e6f7e6;
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  border: 1rpx solid #52c41a;
+}
+
+.plan-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.plan-tip {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.check-icon {
+  font-size: 32rpx;
+  color: #52c41a;
+  font-weight: bold;
+}
+
+/* 当前计划卡片 */
+.current-plan-card {
+  background-color: #f6ffed;
+  border: 2rpx solid #b7eb8f;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin: 48rpx 0 32rpx;
+}
+
+.current-plan-card .label {
+  display: block;
+  font-size: 24rpx;
+  color: #666666;
+  margin-bottom: 8rpx;
+}
+
+.current-plan-name {
+  display: block;
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #52c41a;
+  margin-bottom: 12rpx;
+}
+
+.current-part, .next-part {
+  display: block;
+  font-size: 28rpx;
+  color: #666666;
+  margin-bottom: 4rpx;
+}
+
+.next-part {
+  color: #1890ff;
+}
+
+/* 确认按钮 */
+.confirm-btn {
+  background-color: #52c41a;
+  color: #ffffff;
+  font-size: 32rpx;
+  font-weight: bold;
+  padding: 28rpx;
+  border-radius: 48rpx;
+  border: none;
+  margin: 32rpx 0;
+  width: 100%;
+}
+
+.confirm-btn:disabled {
+  background-color: #cccccc;
+  color: #999999;
+}
+
+.confirm-btn:active:not(:disabled) {
+  opacity: 0.8;
+  transform: scale(0.98);
+}
+
+/* 注意事项 */
+.notice {
+  background-color: #fffbe6;
+  border: 2rpx solid #ffe58f;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-top: 32rpx;
+}
+
+.notice-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #faad14;
+  margin-bottom: 16rpx;
+}
+
+.notice-item {
+  display: block;
+  font-size: 26rpx;
+  color: #666666;
+  margin-bottom: 8rpx;
+  line-height: 1.5;
+}
