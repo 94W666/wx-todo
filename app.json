@@ -2,8 +2,7 @@
   "pages": [
     "pages/index/index",
     "pages/plan/plan",
-    "pages/sleep/sleep",
-    "pages/team/team"
+    "pages/sleep/sleep"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -35,7 +34,6 @@
   "style": "v2",
   "lazyCodeLoading": "requiredComponents",
   "sitemapLocation": "sitemap.json",
-  "cloud": true,
   "permission": {
     "scope.userLocation": {
       "desc": "你的位置信息将用于小程序位置接口的效果展示"

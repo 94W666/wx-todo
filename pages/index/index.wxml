@@ -4,7 +4,13 @@
   <!-- 顶部状态栏 -->
   <view class="status-bar">
     <text class="date">{{currentDate}}</text>
-    <text class="plan-name">{{planName}}</text>
+    <view class="right-section">
+      <text class="plan-name">{{planName}}</text>
+      <view class="rank-badge" style="background-color: {{userRank.color}}">
+        <text class="rank-icon">🏆</text>
+        <text class="rank-name">{{userRank.rank}}</text>
+      </view>
+    </view>
   </view>
 
   <!-- 今日训练部位卡片 -->
@@ -24,6 +30,13 @@
       {{isPunchedToday ? '今日已打卡' : '点击打卡'}}
     </button>
     <text class="punch-tip" wx:if="{{isPunchedToday}}">打卡时间：{{punchTime}}</text>
+  </view>
+
+  <!-- 连续打卡统计 -->
+  <view class="streak-stats">
+    <text class="current-streak">连续打卡：{{currentStreak}}天</text>
+    <text class="longest-streak">（历史最高：{{longestStreak}}天）</text>
+    <text class="streak-tip" wx:if="{{currentStreak === 0}}">开始你的第一次打卡吧！</text>
   </view>
 
   <!-- 明日训练部位预览 -->
@@ -53,6 +66,158 @@
     </view>
   </view>
 
+  <!-- 打卡热力图 -->
+  <view class="card heatmap-card">
+    <view class="heatmap-header">
+      <text class="label">打卡热力图</text>
+      <view class="month-navigation">
+        <text class="prev-month" bindtap="prevMonth">‹</text>
+        <text class="current-month">{{heatmapMonthText}}</text>
+        <text class="next-month" bindtap="nextMonth">›</text>
+      </view>
+    </view>
+
+    <!-- 星期标题 -->
+    <view class="weekdays">
+      <text wx:for="{{weekdays}}" wx:key="index">{{item}}</text>
+    </view>
+
+    <!-- 日历网格 -->
+    <view class="calendar-grid">
+      <view
+        wx:for="{{heatmapData}}"
+        wx:key="index"
+        class="day-cell {{item.isToday ? 'today' : ''}} {{item.isCurrentMonth ? '' : 'other-month'}}"
+        style="background-color: {{item.color}}"
+        bindtap="onDayTap"
+        data-date="{{item.date}}"
+      >
+        <text class="day-number">{{item.day}}</text>
+        <text class="punch-indicator" wx:if="{{item.hasPunch}}">✓</text>
+      </view>
+    </view>
+
+    <!-- 图例 -->
+    <view class="heatmap-legend">
+      <view class="legend-item">
+        <view class="legend-color" style="background-color: #ebedf0;"></view>
+        <text class="legend-text">未打卡</text>
+      </view>
+      <view class="legend-item">
+        <view class="legend-color" style="background-color: #9be9a8;"></view>
+        <text class="legend-text">已打卡</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 用户数据统计面板 -->
+  <view class="card stats-card">
+    <view class="flex-between">
+      <text class="label">训练数据统计</text>
+      <text class="stats-tip">{{statsPanel.totalPunchDays}}天打卡</text>
+    </view>
+
+    <!-- 关键指标 -->
+    <view class="stats-grid">
+      <view class="stat-item">
+        <text class="stat-value">{{statsPanel.totalPunchDays}}</text>
+        <text class="stat-label">总打卡天数</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value">{{statsPanel.monthlyStats.punchDays}}</text>
+        <text class="stat-label">本月打卡</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value">{{statsPanel.frequencyStats.consistencyScore}}</text>
+        <text class="stat-label">坚持分数</text>
+      </view>
+    </view>
+
+    <!-- 训练频率 -->
+    <view class="stat-section" wx:if="{{statsPanel.frequencyStats.mostFrequentDay}}">
+      <text class="section-title">训练频率</text>
+      <view class="frequency-stats">
+        <text class="frequency-item">平均间隔：{{statsPanel.frequencyStats.averageDaysBetween}}天</text>
+        <text class="frequency-item">最常训练日：{{statsPanel.frequencyStats.mostFrequentDay}}</text>
+      </view>
+    </view>
+
+    <!-- 部位训练次数 -->
+    <view class="stat-section" wx:if="{{Object.keys(statsPanel.partStats).length > 0}}">
+      <text class="section-title">部位训练次数</text>
+      <view class="part-stats">
+        <block wx:for="{{statsPanel.partStats}}" wx:key="part" wx:for-item="stat" wx:for-index="part">
+          <view class="part-item">
+            <text class="part-name">{{part}}</text>
+            <view class="part-bar-container">
+              <view class="part-bar" style="width: {{stat.width}}rpx;"></view>
+            </view>
+            <text class="part-count">{{stat.count}}次</text>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <!-- 计划执行统计 -->
+    <view class="stat-section" wx:if="{{statsPanel.planExecutionStats.fiveSplit.count > 0 || statsPanel.planExecutionStats.threeSplit.count > 0}}">
+      <text class="section-title">计划执行情况</text>
+      <view class="plan-stats">
+        <view class="plan-item" wx:if="{{statsPanel.planExecutionStats.fiveSplit.count > 0}}">
+          <text class="plan-name">五分化训练</text>
+          <text class="plan-count">{{statsPanel.planExecutionStats.fiveSplit.count}}次</text>
+        </view>
+        <view class="plan-item" wx:if="{{statsPanel.planExecutionStats.threeSplit.count > 0}}">
+          <text class="plan-name">三分化训练</text>
+          <text class="plan-count">{{statsPanel.planExecutionStats.threeSplit.count}}次</text>
+        </view>
+      </view>
+    </view>
+
+  </view>
+
+  <!-- 成就系统预览 -->
+  <view class="card achievement-card">
+    <view class="achievement-link" bindtap="showAchievementModal">
+      <view class="flex-between">
+        <view>
+          <text class="label">成就系统</text>
+          <text class="achievement-tip">已解锁{{achievementProgress.unlocked}}/{{achievementProgress.total}}个成就</text>
+        </view>
+        <view class="achievement-progress">
+          <text class="progress-percent">{{achievementProgress.progress}}%</text>
+          <text class="icon">→</text>
+        </view>
+      </view>
+
+      <!-- 成就进度条 -->
+      <view class="progress mt-16">
+        <progress
+          percent="{{achievementProgress.progress}}"
+          stroke-width="12"
+          activeColor="#faad14"
+          backgroundColor="#fffbe6"
+          active
+        />
+      </view>
+
+      <!-- 最近解锁的成就 -->
+      <view class="recent-achievements mt-16" wx:if="{{recentAchievements.length > 0}}">
+        <text class="section-title">最近解锁</text>
+        <view class="achievement-list">
+          <block wx:for="{{recentAchievements}}" wx:key="id">
+            <view class="achievement-item">
+              <text class="achievement-icon">{{item.icon}}</text>
+              <view class="achievement-info">
+                <text class="achievement-name">{{item.name}}</text>
+                <text class="achievement-desc">{{item.description}}</text>
+              </view>
+            </view>
+          </block>
+        </view>
+      </view>
+    </view>
+  </view>
+
   <!-- 睡眠记录入口 -->
   <view class="card sleep-card">
     <view class="sleep-link" bindtap="switchToSleepPage">
@@ -66,21 +231,74 @@
     </view>
   </view>
 
-  <!-- 组队打卡入口 -->
-  <view class="card team-card">
-    <view class="team-link" bindtap="switchToTeamPage">
-      <view class="flex-between">
-        <view>
-          <text class="label">组队打卡</text>
-          <text class="team-tip">和好友一起，互相督促</text>
-        </view>
-        <text class="icon">→</text>
-      </view>
-    </view>
-  </view>
 
   <!-- 底部提示 -->
   <view class="footer-tip">
     <text>坚持打卡，遇见更好的自己！</text>
+  </view>
+
+  <!-- 成就系统浮窗 -->
+  <view class="achievement-modal-mask" wx:if="{{showAchievementModal}}" bindtap="hideAchievementModal">
+    <view class="achievement-modal" catchtap="stopPropagation">
+      <!-- 浮窗标题栏 -->
+      <view class="modal-header">
+        <text class="modal-title">成就系统</text>
+        <text class="modal-close" bindtap="hideAchievementModal">×</text>
+      </view>
+
+      <!-- 成就统计 -->
+      <view class="modal-stats">
+        <text class="stats-text">已解锁 {{achievementProgress.unlocked}}/{{achievementProgress.total}} 个成就</text>
+        <view class="stats-progress">
+          <progress
+            percent="{{achievementProgress.progress}}"
+            stroke-width="12"
+            activeColor="#faad14"
+            backgroundColor="#fffbe6"
+            active
+          />
+          <text class="progress-text">{{achievementProgress.progress}}%</text>
+        </view>
+      </view>
+
+      <!-- 成就列表 -->
+      <scroll-view class="achievement-list-scroll" scroll-y catchtouchmove="stopPropagation">
+        <block wx:for="{{allAchievements}}" wx:key="id">
+          <view class="modal-achievement-item {{item.unlocked ? 'unlocked' : 'locked'}}">
+            <text class="achievement-icon">{{item.icon}}</text>
+            <view class="achievement-details">
+              <view class="achievement-header">
+                <text class="achievement-name">{{item.name}}</text>
+                <view class="achievement-status {{item.unlocked ? 'status-unlocked' : 'status-locked'}}">
+                  {{item.unlocked ? '已解锁' : '未解锁'}}
+                </view>
+              </view>
+              <text class="achievement-description">{{item.description}}</text>
+              <!-- 条件说明 -->
+              <view class="condition-section">
+                <text class="condition-title">解锁条件：</text>
+                <text class="condition-text">
+                  <block wx:if="{{item.id === 'first_punch'}}">完成第一次健身打卡</block>
+                  <block wx:elif="{{item.id === 'streak_3'}}">连续打卡3天</block>
+                  <block wx:elif="{{item.id === 'streak_7'}}">连续打卡7天</block>
+                  <block wx:elif="{{item.id === 'streak_30'}}">连续打卡30天</block>
+                  <block wx:elif="{{item.id === 'total_10'}}">总打卡10天</block>
+                  <block wx:elif="{{item.id === 'total_30'}}">总打卡30天</block>
+                  <block wx:elif="{{item.id === 'all_parts'}}">所有训练部位都至少打卡一次</block>
+                  <block wx:elif="{{item.id === 'month_full'}}">当月每天都打卡</block>
+                  <block wx:elif="{{item.id === 'plan_master'}}">两种训练计划都使用过</block>
+                  <block wx:else>未知条件</block>
+                </text>
+              </view>
+            </view>
+          </view>
+        </block>
+      </scroll-view>
+
+      <!-- 浮窗底部按钮 -->
+      <view class="modal-footer">
+        <text class="modal-tip">坚持打卡，解锁更多成就！</text>
+      </view>
+    </view>
   </view>
 </view>

@@ -1,6 +1,7 @@
 {
-  "libVersion": "3.15.0",
-  "projectname": "my-todo",
+  "libVersion": "2.19.0",
+  "appid": "wx2f1da9f8bec7ce8e",
+  "projectname": "健身打卡",
   "setting": {
     "urlCheck": true,
     "coverView": true,
