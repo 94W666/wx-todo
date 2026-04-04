@@ -209,43 +209,6 @@
   font-weight: bold;
 }
 
-/* 组队卡片 */
-.team-card {
-  margin-top: 32rpx;
-  padding: 24rpx;
-}
-
-.team-link {
-  display: block;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.team-link:active {
-  opacity: 0.8;
-  transform: scale(0.99);
-}
-
-.team-card .label {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #722ed1;
-  display: block;
-}
-
-.team-tip {
-  display: block;
-  font-size: 24rpx;
-  color: #999999;
-  margin-top: 8rpx;
-}
-
-.team-card .icon {
-  font-size: 36rpx;
-  color: #722ed1;
-  font-weight: bold;
-}
 
 /* 底部提示 */
 .footer-tip {
@@ -255,3 +218,678 @@
   margin-top: 48rpx;
   padding: 0 32rpx;
 }
+
+/* ==================== 段位系统和热力图样式 ==================== */
+
+/* 顶部状态栏右侧区域 */
+.status-bar .right-section {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+/* 段位徽章 */
+.rank-badge {
+  display: flex;
+  align-items: center;
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  background-color: #cd7f32;
+  color: #ffffff;
+  font-size: 20rpx;
+  font-weight: bold;
+  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.rank-icon {
+  font-size: 22rpx;
+  margin-right: 4rpx;
+}
+
+.rank-name {
+  font-size: 20rpx;
+}
+
+/* 连续打卡统计 */
+.streak-stats {
+  text-align: center;
+  margin: 24rpx 32rpx;
+  padding: 16rpx;
+  background-color: #e6f7e6;
+  border-radius: 16rpx;
+  border: 2rpx solid #52c41a;
+}
+
+.current-streak {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #52c41a;
+}
+
+.longest-streak {
+  font-size: 24rpx;
+  color: #666666;
+  margin-left: 8rpx;
+}
+
+.streak-tip {
+  display: block;
+  font-size: 24rpx;
+  color: #999999;
+  margin-top: 8rpx;
+  font-style: italic;
+}
+
+/* 热力图卡片 */
+.heatmap-card {
+  margin-top: 32rpx;
+}
+
+.heatmap-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.heatmap-header .label {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.month-navigation {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.prev-month, .next-month {
+  font-size: 36rpx;
+  color: #52c41a;
+  font-weight: bold;
+  width: 40rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.prev-month:active, .next-month:active {
+  background-color: #e6f7e6;
+  transform: scale(0.9);
+}
+
+.current-month {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333333;
+  min-width: 160rpx;
+  text-align: center;
+}
+
+/* 星期标题 */
+.weekdays {
+  display: flex;
+  margin-bottom: 12rpx;
+}
+
+.weekdays text {
+  flex: 1;
+  text-align: center;
+  font-size: 24rpx;
+  color: #666666;
+  padding: 8rpx 0;
+}
+
+/* 日历网格 */
+.calendar-grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.day-cell {
+  width: calc(100% / 7);
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-radius: 8rpx;
+  margin: 2rpx;
+  transition: all 0.2s;
+}
+
+.day-cell:active {
+  transform: scale(0.95);
+  opacity: 0.8;
+}
+
+.day-cell.other-month {
+  opacity: 0.3;
+}
+
+.day-cell.today {
+  border: 2rpx solid #52c41a;
+  box-shadow: 0 0 8rpx rgba(82, 196, 26, 0.3);
+}
+
+.day-number {
+  font-size: 24rpx;
+  color: #333333;
+  font-weight: normal;
+}
+
+.day-cell.other-month .day-number {
+  color: #999999;
+}
+
+.punch-indicator {
+  position: absolute;
+  bottom: 8rpx;
+  font-size: 20rpx;
+  color: #ffffff;
+  font-weight: bold;
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.3);
+}
+
+/* 图例 */
+.heatmap-legend {
+  display: flex;
+  justify-content: center;
+  gap: 32rpx;
+  margin-top: 24rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #eeeeee;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.legend-color {
+  width: 24rpx;
+  height: 24rpx;
+  border-radius: 4rpx;
+}
+
+.legend-text {
+  font-size: 20rpx;
+  color: #666666;
+}
+
+/* ==================== 用户数据统计面板样式 ==================== */
+.stats-card {
+  margin-top: 32rpx;
+}
+
+.stats-card .label {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.stats-tip {
+  font-size: 24rpx;
+  color: #52c41a;
+  background-color: #e6f7e6;
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+}
+
+/* 关键指标网格 */
+.stats-grid {
+  display: flex;
+  justify-content: space-between;
+  margin: 24rpx 0;
+}
+
+.stat-item {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 8rpx;
+}
+
+.stat-value {
+  display: block;
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #52c41a;
+  line-height: 1.2;
+}
+
+.stat-label {
+  display: block;
+  font-size: 22rpx;
+  color: #666666;
+  margin-top: 8rpx;
+}
+
+/* 统计区块 */
+.stat-section {
+  margin-top: 24rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx solid #eeeeee;
+}
+
+.section-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 16rpx;
+}
+
+/* 训练频率 */
+.frequency-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.frequency-item {
+  font-size: 26rpx;
+  color: #666666;
+}
+
+/* 部位训练次数 */
+.part-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.part-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.part-name {
+  font-size: 26rpx;
+  color: #333333;
+  width: 40rpx;
+  text-align: center;
+}
+
+.part-bar-container {
+  flex: 1;
+  height: 24rpx;
+  background-color: #e6f7e6;
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+
+.part-bar {
+  height: 100%;
+  background-color: #52c41a;
+  border-radius: 12rpx;
+  transition: width 0.3s ease;
+}
+
+.part-count {
+  font-size: 22rpx;
+  color: #666666;
+  width: 80rpx;
+  text-align: right;
+}
+
+/* 计划执行统计 */
+.plan-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.plan-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12rpx 16rpx;
+  background-color: #f6f6f6;
+  border-radius: 12rpx;
+}
+
+.plan-name {
+  font-size: 26rpx;
+  color: #333333;
+}
+
+.plan-count {
+  font-size: 26rpx;
+  color: #52c41a;
+  font-weight: bold;
+}
+
+/* ==================== 成就系统预览样式 ==================== */
+.achievement-card {
+  margin-top: 32rpx;
+}
+
+.achievement-link {
+  display: block;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.achievement-link:active {
+  opacity: 0.8;
+  transform: scale(0.99);
+}
+
+.achievement-card .label {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #faad14;
+}
+
+.achievement-tip {
+  display: block;
+  font-size: 24rpx;
+  color: #999999;
+  margin-top: 8rpx;
+}
+
+.achievement-progress {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.achievement-progress .progress-percent {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #faad14;
+}
+
+.achievement-progress .icon {
+  font-size: 36rpx;
+  color: #faad14;
+  font-weight: bold;
+}
+
+/* 最近解锁的成就 */
+.recent-achievements {
+  padding-top: 16rpx;
+  border-top: 1rpx solid #eeeeee;
+}
+
+.recent-achievements .section-title {
+  display: block;
+  font-size: 26rpx;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 16rpx;
+}
+
+.achievement-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.achievement-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 16rpx;
+  background-color: #fffbe6;
+  border-radius: 12rpx;
+  border: 2rpx solid #faad14;
+}
+
+.achievement-icon {
+  font-size: 40rpx;
+  width: 60rpx;
+  text-align: center;
+}
+
+.achievement-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.achievement-name {
+  font-size: 26rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.achievement-desc {
+  font-size: 22rpx;
+  color: #666666;
+}
+
+/* ==================== 成就系统浮窗样式 ==================== */
+.achievement-modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.achievement-modal {
+  width: 90%;
+  max-width: 700rpx;
+  height: 70vh;
+  background-color: #ffffff;
+  border-radius: 24rpx;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.3);
+  box-sizing: border-box;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32rpx;
+  border-bottom: 1rpx solid #eeeeee;
+  background-color: #fffbe6;
+}
+
+.modal-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #faad14;
+}
+
+.modal-close {
+  font-size: 48rpx;
+  color: #999999;
+  width: 60rpx;
+  height: 60rpx;
+  text-align: center;
+  line-height: 60rpx;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.modal-close:active {
+  background-color: #eeeeee;
+  color: #666666;
+}
+
+.modal-stats {
+  padding: 24rpx 32rpx;
+  background-color: #fafafa;
+  border-bottom: 1rpx solid #eeeeee;
+}
+
+.stats-text {
+  display: block;
+  font-size: 26rpx;
+  color: #666666;
+  margin-bottom: 16rpx;
+}
+
+.stats-progress {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.stats-progress progress {
+  flex: 1;
+}
+
+.stats-progress .progress-text {
+  font-size: 24rpx;
+  font-weight: bold;
+  color: #faad14;
+  min-width: 80rpx;
+  text-align: right;
+}
+
+.achievement-list-scroll {
+  flex: 1;
+  height: 0; /* 使flex项在flex容器中正确伸缩 */
+  min-height: 200rpx;
+  padding: 24rpx 32rpx;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.modal-achievement-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 20rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  border-radius: 16rpx;
+  border: 2rpx solid #eeeeee;
+  background-color: #fafafa;
+  transition: all 0.2s;
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
+}
+
+.modal-achievement-item.unlocked {
+  border-color: #faad14;
+  background-color: #fffbe6;
+}
+
+.modal-achievement-item.locked {
+  opacity: 0.7;
+}
+
+.achievement-icon {
+  font-size: 48rpx;
+  width: 80rpx;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.achievement-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.achievement-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.achievement-name {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333333;
+  word-wrap: break-word;
+  word-break: break-word;
+  flex: 1;
+  max-width: 100%;
+}
+
+.achievement-status {
+  font-size: 22rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  font-weight: 600;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 80rpx;
+}
+
+.status-unlocked {
+  background-color: #e6f7e6;
+  color: #52c41a;
+}
+
+.status-locked {
+  background-color: #f5f5f5;
+  color: #999999;
+}
+
+.achievement-description {
+  font-size: 24rpx;
+  color: #666666;
+  line-height: 1.4;
+  word-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.condition-section {
+  margin-top: 8rpx;
+  padding: 16rpx;
+  background-color: #f9f9f9;
+  border-radius: 12rpx;
+  border-left: 4rpx solid #faad14;
+  overflow: hidden;
+}
+
+.condition-title {
+  font-size: 22rpx;
+  font-weight: bold;
+  color: #faad14;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+.condition-text {
+  font-size: 22rpx;
+  color: #666666;
+  line-height: 1.4;
+  word-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.modal-footer {
+  padding: 24rpx 32rpx;
+  border-top: 1rpx solid #eeeeee;
+  text-align: center;
+  background-color: #fffbe6;
+}
+
+.modal-tip {
+  font-size: 24rpx;
+  color: #faad14;
+  font-style: italic;
+}
+
