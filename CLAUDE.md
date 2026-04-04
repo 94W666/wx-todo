@@ -3,7 +3,7 @@
 ## 一、项目概述与技术栈
 **项目类型**：微信小程序（WeChat Mini Program）
 **项目名称**：健身打卡（Fitness Check-in）
-**App ID**：wx2f1da9f8bec7ce8e
+**App ID**：[APP_ID]
 **基础库版本**：2.19.0（支持懒加载代码注入）
 **技术栈**：微信小程序原生框架（WXML + WXSS + JavaScript）
 **核心特色**：游戏化段位系统 + 打卡热力图 + 智能训练计划

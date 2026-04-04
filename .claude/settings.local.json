@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(node -c \"D:/my-todo/pages/index/index.js\")",
-      "Bash(node -c \"D:/my-todo/utils/util.js\")",
-      "Bash(node -c \"D:/my-todo/pages/plan/plan.js\")"
-    ]
-  }
-}
