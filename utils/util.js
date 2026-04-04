@@ -25,6 +25,9 @@ function getNextPart(currentPart, plan) {
     }
     const nextIndex = (currentIndex + 1) % threeSplitParts.length;
     return threeSplitParts[nextIndex];
+  } else if (plan === 'customPlan') {
+    // 自主计划：用户自己选择部位，不由系统决定下一个部位
+    return '';
   } else {
     // 默认五分化
     return '胸';
@@ -76,9 +79,10 @@ function getSleepFeelingData(index) {
  * 计算训练进度百分比
  * @param {Object} punchRecords 打卡记录
  * @param {string} plan 训练计划
+ * @param {number} currentStreak 可选：当前连续打卡天数，如果提供则避免重复计算
  * @returns {number} 进度百分比
  */
-function calculateProgress(punchRecords, plan) {
+function calculateProgress(punchRecords, plan, currentStreak = undefined, partStats = undefined) {
   if (!punchRecords || typeof punchRecords !== 'object') {
     return 0;
   }
@@ -86,25 +90,156 @@ function calculateProgress(punchRecords, plan) {
   // 计算已打卡天数
   const punchDays = Object.keys(punchRecords).length;
 
-  // 简单逻辑：根据计划设定目标天数
-  const targetDays = plan === 'fiveSplit' ? 30 : 21; // 示例目标
+  // 根据计划类型和训练均衡性计算进度
+  let progress = 0;
 
-  const progress = Math.min(Math.round((punchDays / targetDays) * 100), 100);
-  return progress;
+  if (plan === 'fiveSplit') {
+    // 五分化训练：需要完成所有5个部位的均衡训练
+    const partStatsToUse = partStats || calculatePartStats(punchRecords);
+    const fiveSplitParts = ['胸', '背', '肩', '臂', '腿'];
+
+    // 计算每个部位的训练次数
+    const partCounts = fiveSplitParts.map(part => partStatsToUse[part] || 0);
+    const maxCount = Math.max(...partCounts, 1); // 避免除以0
+
+    // 均衡性得分：所有部位训练次数的均衡程度
+    let balanceScore = 0;
+    partCounts.forEach(count => {
+      if (count > 0) {
+        balanceScore += Math.min(count / maxCount, 1);
+      }
+    });
+    balanceScore = balanceScore / fiveSplitParts.length;
+
+    // 连续性加分：连续打卡天数的影响
+    const streak = currentStreak !== undefined ? currentStreak : calculateStreakDays(punchRecords).currentStreak;
+    const continuityBonus = Math.min(streak / 30, 0.3); // 最多30%加分
+
+    // 总进度 = 打卡天数进度 * 均衡性 + 连续性加分
+    const targetCycles = 6; // 完成6个五分化循环（30天）
+    const cycleProgress = Math.min(punchDays / (fiveSplitParts.length * targetCycles), 1);
+    progress = Math.min(Math.round((cycleProgress * 0.7 + balanceScore * 0.3) * 100) + Math.round(continuityBonus * 100), 100);
+
+  } else if (plan === 'threeSplit') {
+    // 三分化训练：需要完成所有3个组合部位的均衡训练
+    const partStatsToUse = partStats || calculatePartStats(punchRecords);
+    const threeSplitParts = ['推', '拉', '腿'];
+
+    // 计算每个组合部位的训练次数
+    const partCounts = threeSplitParts.map(part => partStatsToUse[part] || 0);
+    const maxCount = Math.max(...partCounts, 1);
+
+    // 均衡性得分
+    let balanceScore = 0;
+    partCounts.forEach(count => {
+      if (count > 0) {
+        balanceScore += Math.min(count / maxCount, 1);
+      }
+    });
+    balanceScore = balanceScore / threeSplitParts.length;
+
+    // 连续性加分
+    const streak = currentStreak !== undefined ? currentStreak : calculateStreakDays(punchRecords).currentStreak;
+    const continuityBonus = Math.min(streak / 21, 0.3); // 最多30%加分
+
+    // 总进度 = 打卡天数进度 * 均衡性 + 连续性加分
+    const targetCycles = 7; // 完成7个三分化循环（21天）
+    const cycleProgress = Math.min(punchDays / (threeSplitParts.length * targetCycles), 1);
+    progress = Math.min(Math.round((cycleProgress * 0.7 + balanceScore * 0.3) * 100) + Math.round(continuityBonus * 100), 100);
+
+  } else if (plan === 'customPlan') {
+    // 自主计划：简单的天数百分比，目标30天
+    const targetDays = 30;
+    progress = Math.min(Math.round((punchDays / targetDays) * 100), 100);
+
+  } else {
+    // 默认：简单的天数百分比
+    const targetDays = 30;
+    progress = Math.min(Math.round((punchDays / targetDays) * 100), 100);
+  }
+
+  return Math.max(0, Math.min(progress, 100)); // 确保在0-100之间
 }
 
 /**
- * 根据打卡记录和日期智能获取当前训练部位
+ * 智能休息日建议
  * @param {Object} punchRecords 打卡记录
  * @param {string} plan 训练计划
- * @returns {string} 当前训练部位
+ * @returns {boolean} 是否建议休息
+ */
+function suggestRestDay(punchRecords, plan) {
+  if (!punchRecords || typeof punchRecords !== 'object') {
+    return false;
+  }
+
+  // 获取连续打卡天数
+  const { currentStreak } = calculateStreakDays(punchRecords);
+
+  if (plan === 'fiveSplit') {
+    // 五分化：训练5天后建议休息1天
+    return currentStreak >= 5 && (currentStreak % 6 === 5); // 第5、11、17...天建议休息
+  } else if (plan === 'threeSplit') {
+    // 三分化：训练3天后建议休息1天
+    return currentStreak >= 3 && (currentStreak % 4 === 3); // 第3、7、11...天建议休息
+  } else if (plan === 'customPlan') {
+    // 自主计划：不提供智能休息建议，用户自主决定
+    return false;
+  }
+
+  return false;
+}
+
+/**
+ * 检查明天是否建议休息
+ * @param {Object} punchRecords 打卡记录
+ * @param {string} plan 训练计划
+ * @param {boolean} isPunchedToday 今天是否已打卡
+ * @param {number} currentStreak 可选：当前连续打卡天数，如果提供则避免重复计算
+ * @returns {boolean} 明天是否建议休息
+ */
+function shouldRestTomorrow(punchRecords, plan, isPunchedToday, currentStreak = undefined) {
+  if (!punchRecords || typeof punchRecords !== 'object') {
+    return false;
+  }
+
+  // 获取连续打卡天数
+  const streak = currentStreak !== undefined ? currentStreak : calculateStreakDays(punchRecords).currentStreak;
+
+  // 如果今天已打卡，明天连续天数加1；否则保持当前连续天数（因为今天没打卡，连续已中断）
+  const tomorrowStreak = isPunchedToday ? streak + 1 : streak;
+
+  if (plan === 'fiveSplit') {
+    // 五分化：训练5天后休息1天
+    // 如果明天连续天数是6的倍数（第6、12、18...天），建议休息
+    return tomorrowStreak >= 6 && (tomorrowStreak % 6 === 0);
+  } else if (plan === 'threeSplit') {
+    // 三分化：训练3天后休息1天
+    // 如果明天连续天数是4的倍数（第4、8、12...天），建议休息
+    return tomorrowStreak >= 4 && (tomorrowStreak % 4 === 0);
+  } else if (plan === 'customPlan') {
+    // 自主计划：不提供明天休息建议，用户自主决定
+    return false;
+  }
+
+  return false;
+}
+
+/**
+ * 根据打卡记录智能获取今日建议训练部位
+ * @param {Object} punchRecords 打卡记录
+ * @param {string} plan 训练计划
+ * @returns {string} 今日建议训练部位
  */
 function getCurrentPart(punchRecords, plan) {
+  // 自主计划：不显示固定部位，由用户选择
+  if (plan === 'customPlan') {
+    return '';
+  }
+
   const defaultPart = plan === 'fiveSplit' ? '胸' : '推';
-  let currentPart = wx.getStorageSync('currentPart') || defaultPart;
 
   if (!punchRecords || typeof punchRecords !== 'object') {
-    return currentPart;
+    return wx.getStorageSync('currentPart') || defaultPart;
   }
 
   // 获取今天和昨天的日期键
@@ -117,18 +252,21 @@ function getCurrentPart(punchRecords, plan) {
   const todayPunch = punchRecords[todayKey];
   const yesterdayPunch = punchRecords[yesterdayKey];
 
-  if (todayPunch) {
-    // 如果今天已打卡，当前部位就是今天打卡的部位
-    currentPart = todayPunch.part;
-  } else if (yesterdayPunch) {
-    // 如果昨天有打卡，今天应该训练昨天部位的下一个部位
-    currentPart = getNextPart(yesterdayPunch.part, yesterdayPunch.plan || plan);
-    // 更新存储，方便其他页面使用
-    wx.setStorageSync('currentPart', currentPart);
-  }
-  // 其他情况（无打卡记录或打卡记录更早）则返回存储的currentPart
+  let suggestedPart;
 
-  return currentPart;
+  if (todayPunch) {
+    // 今天已打卡，返回今天打卡的部位
+    suggestedPart = todayPunch.part;
+  } else if (yesterdayPunch) {
+    // 昨天有打卡，今天应训练下一个部位（循环推进）
+    suggestedPart = getNextPart(yesterdayPunch.part, yesterdayPunch.plan || plan);
+    wx.setStorageSync('currentPart', suggestedPart);
+  } else {
+    // 昨天也没打卡，返回存储的部位或默认部位
+    suggestedPart = wx.getStorageSync('currentPart') || defaultPart;
+  }
+
+  return suggestedPart;
 }
 
 /**
@@ -162,20 +300,30 @@ function calculateStreakDays(punchRecords) {
   let currentStreak = 0;
   let longestStreak = 0;
 
+  // 使用Set快速查找打卡日期
+  const dateSet = new Set(dates);
+
   // 计算当前连续打卡天数（从今天往前算）
   const today = new Date();
   today.setHours(0, 0, 0, 0); // 标准化时间
   let checkDate = new Date(today);
-  let maxIterations = 365 * 2; // 最多检查两年，防止无限循环
+  let maxIterations = 400; // 最多检查400天，防止无限循环（覆盖一年以上）
 
-  // 向前查找连续打卡天数
-  while (maxIterations-- > 0) {
-    const dateKey = getDateKey(checkDate);
-    if (punchRecords[dateKey]) {
-      currentStreak++;
-      checkDate.setDate(checkDate.getDate() - 1);
-    } else {
-      break;
+  // 首先检查今天是否已打卡，如果没打卡则连续天数为0
+  const todayKey = getDateKey(today);
+  if (!dateSet.has(todayKey)) {
+    // 今天没打卡，连续天数从0开始（中断了）
+    currentStreak = 0;
+  } else {
+    // 今天已打卡，从今天开始往前计算连续天数
+    while (maxIterations-- > 0) {
+      const dateKey = getDateKey(checkDate);
+      if (dateSet.has(dateKey)) {
+        currentStreak++;
+        checkDate.setDate(checkDate.getDate() - 1);
+      } else {
+        break;
+      }
     }
   }
 
@@ -184,35 +332,42 @@ function calculateStreakDays(punchRecords) {
     // 只有一天打卡记录
     longestStreak = 1;
   } else {
-    let tempStreak = 1;
-    longestStreak = 1;
-
-    for (let i = 1; i < dates.length; i++) {
-      // 解析日期字符串为Date对象
-      const prevDate = parseDateString(dates[i - 1]);
-      const currDate = parseDateString(dates[i]);
-
-      if (!prevDate || !currDate) continue;
-
-      // 计算两个日期之间的天数差
-      const timeDiff = currDate.getTime() - prevDate.getTime();
-      const dayDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-
-      if (dayDiff === 1) {
-        // 连续两天
-        tempStreak++;
-      } else if (dayDiff > 1) {
-        // 中断了
-        if (tempStreak > longestStreak) {
-          longestStreak = tempStreak;
-        }
-        tempStreak = 1;
+    // 预解析所有日期为时间戳（毫秒数），提高性能
+    const timestamps = [];
+    for (let i = 0; i < dates.length; i++) {
+      const parsed = parseDateString(dates[i]);
+      if (parsed) {
+        timestamps.push(parsed.getTime());
       }
     }
 
-    // 检查最后一个连续序列
-    if (tempStreak > longestStreak) {
-      longestStreak = tempStreak;
+    if (timestamps.length < 2) {
+      longestStreak = timestamps.length;
+    } else {
+      let tempStreak = 1;
+      longestStreak = 1;
+
+      for (let i = 1; i < timestamps.length; i++) {
+        // 计算两个日期之间的天数差
+        const timeDiff = timestamps[i] - timestamps[i - 1];
+        const dayDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+
+        if (dayDiff === 1) {
+          // 连续两天
+          tempStreak++;
+        } else if (dayDiff > 1) {
+          // 中断了
+          if (tempStreak > longestStreak) {
+            longestStreak = tempStreak;
+          }
+          tempStreak = 1;
+        }
+      }
+
+      // 检查最后一个连续序列
+      if (tempStreak > longestStreak) {
+        longestStreak = tempStreak;
+      }
     }
   }
 
@@ -337,18 +492,32 @@ function generateHeatmapData(punchRecords, year, month) {
     });
   }
 
+  // 计算每个打卡日往前连续打卡的天数，用于确定颜色深度
+  const dateSet = punchRecords ? new Set(Object.keys(punchRecords)) : new Set();
+
   // 添加当月的数据
   monthData.forEach(item => {
     const isToday = item.date === todayKey;
     let color = '#ebedf0'; // 默认未打卡颜色
 
     if (item.hasPunch) {
-      // 根据连续打卡天数确定颜色深度
-      // 这里简化处理：已打卡统一用绿色
-      color = '#9be9a8';
+      // 计算该天往前连续打卡的天数
+      let streakLength = 0;
+      let checkDate = parseDateString(item.date);
 
-      // 可以在这里添加更复杂的颜色逻辑，比如：
-      // 根据该天在连续打卡序列中的位置决定颜色深度
+      while (checkDate && dateSet.has(getDateKey(checkDate))) {
+        streakLength++;
+        checkDate.setDate(checkDate.getDate() - 1);
+      }
+
+      // 根据连续打卡天数确定颜色深度
+      if (streakLength >= 7) {
+        color = '#40c057'; // 连续7天及以上 - 深绿色
+      } else if (streakLength >= 3) {
+        color = '#69db7c'; // 连续3-6天 - 中绿色
+      } else {
+        color = '#9be9a8'; // 连续1-2天 - 浅绿色
+      }
     }
 
     result.push({
@@ -458,29 +627,40 @@ function calculateFrequencyStats(punchRecords) {
     };
   }
 
-  // 计算平均间隔天数
-  let totalDays = 0;
-  for (let i = 1; i < dates.length; i++) {
-    const prev = parseDateString(dates[i-1]);
-    const curr = parseDateString(dates[i]);
-    if (prev && curr) {
-      const diff = (curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24);
-      totalDays += diff;
+  // 预解析所有日期为时间戳，提高性能
+  const timestamps = [];
+  const weekdays = []; // 存储星期几
+  for (let i = 0; i < dates.length; i++) {
+    const parsed = parseDateString(dates[i]);
+    if (parsed) {
+      timestamps.push(parsed.getTime());
+      weekdays.push(parsed.getDay()); // 0=周日, 1=周一, ...
     }
   }
-  const averageDaysBetween = (totalDays / (dates.length - 1)).toFixed(1);
+
+  if (timestamps.length < 2) {
+    return {
+      averageDaysBetween: '0.0',
+      mostFrequentDay: '',
+      consistencyScore: 0
+    };
+  }
+
+  // 计算平均间隔天数
+  let totalDays = 0;
+  for (let i = 1; i < timestamps.length; i++) {
+    const diff = (timestamps[i] - timestamps[i - 1]) / (1000 * 60 * 60 * 24);
+    totalDays += diff;
+  }
+  const averageDaysBetween = (totalDays / (timestamps.length - 1)).toFixed(1);
 
   // 计算最频繁的训练日（星期几）
   const dayCount = {0:0,1:0,2:0,3:0,4:0,5:0,6:0};
-  dates.forEach(dateStr => {
-    const date = parseDateString(dateStr);
-    if (date) {
-      const day = date.getDay(); // 0=周日, 1=周一, ...
-      dayCount[day]++;
-    }
+  weekdays.forEach(day => {
+    dayCount[day]++;
   });
 
-  const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+  const weekdayNames = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
   let maxDay = 0;
   let maxCount = 0;
   for (let i = 0; i < 7; i++) {
@@ -499,7 +679,7 @@ function calculateFrequencyStats(punchRecords) {
 
   return {
     averageDaysBetween: averageDaysBetween,
-    mostFrequentDay: maxCount > 0 ? weekdays[maxDay] : '',
+    mostFrequentDay: maxCount > 0 ? weekdayNames[maxDay] : '',
     consistencyScore: consistencyScore
   };
 }
@@ -512,7 +692,8 @@ function calculateFrequencyStats(punchRecords) {
 function calculatePlanExecutionStats(punchRecords) {
   const planStats = {
     fiveSplit: { count: 0, parts: {} },
-    threeSplit: { count: 0, parts: {} }
+    threeSplit: { count: 0, parts: {} },
+    customPlan: { count: 0, parts: {} }
   };
 
   if (!punchRecords || typeof punchRecords !== 'object') {
@@ -533,10 +714,44 @@ function calculatePlanExecutionStats(punchRecords) {
     } else if (plan === 'threeSplit') {
       planStats.threeSplit.count++;
       planStats.threeSplit.parts[part] = (planStats.threeSplit.parts[part] || 0) + 1;
+    } else if (plan === 'customPlan') {
+      planStats.customPlan.count++;
+      planStats.customPlan.parts[part] = (planStats.customPlan.parts[part] || 0) + 1;
     }
   });
 
   return planStats;
+}
+
+/**
+ * 获取自定义计划可选的训练部位列表
+ * @returns {Array} 部位列表
+ */
+function getCustomPlanParts() {
+  return ['胸', '背', '肩', '臂', '腿', '推', '拉', '核心', '有氧', '休息'];
+}
+
+/**
+ * 检查是否为自定义计划
+ * @param {string} plan 训练计划
+ * @returns {boolean} 是否为自定义计划
+ */
+function isCustomPlan(plan) {
+  return plan === 'customPlan';
+}
+
+/**
+ * 获取计划名称
+ * @param {string} plan 计划代码
+ * @returns {string} 计划名称
+ */
+function getPlanName(plan) {
+  const planMap = {
+    'fiveSplit': '五分化训练',
+    'threeSplit': '三分化训练',
+    'customPlan': '自主计划'
+  };
+  return planMap[plan] || plan;
 }
 
 /**
@@ -597,7 +812,7 @@ const ACHIEVEMENT_CONFIG = [
     description: '所有训练部位都至少打卡一次',
     icon: '⭐',
     condition: (stats, punchRecords) => {
-      const partStats = calculatePartStats(punchRecords);
+      const partStats = stats.partStats || {};
       const allParts = ['胸', '背', '肩', '臂', '腿', '推', '拉'];
       return allParts.every(part => partStats[part] > 0);
     },
@@ -612,8 +827,8 @@ const ACHIEVEMENT_CONFIG = [
       const date = new Date();
       const year = date.getFullYear();
       const month = date.getMonth() + 1;
-      const monthlyStats = calculateMonthlyStats(punchRecords, year, month);
       const daysInMonth = new Date(year, month, 0).getDate();
+      const monthlyStats = stats.monthlyStats || { punchDays: 0 };
       return monthlyStats.punchDays >= daysInMonth;
     },
     unlocked: false
@@ -624,8 +839,8 @@ const ACHIEVEMENT_CONFIG = [
     description: '两种训练计划都使用过',
     icon: '📋',
     condition: (stats, punchRecords) => {
-      const planStats = calculatePlanExecutionStats(punchRecords);
-      return planStats.fiveSplit.count > 0 && planStats.threeSplit.count > 0;
+      const planStats = stats.planExecutionStats || {};
+      return planStats.fiveSplit && planStats.threeSplit && planStats.fiveSplit.count > 0 && planStats.threeSplit.count > 0;
     },
     unlocked: false
   }
@@ -635,11 +850,12 @@ const ACHIEVEMENT_CONFIG = [
  * 检查并更新成就解锁状态
  * @param {Object} punchRecords 打卡记录
  * @param {Object} stats 统计数据（包含currentStreak, totalPunchDays等）
- * @returns {Array} 更新后的成就列表（包含解锁状态）
+ * @returns {Object} {achievements: 更新后的成就列表, newlyUnlocked: 新解锁的成就列表}
  */
 function checkAndUpdateAchievements(punchRecords, stats) {
   // 从存储中获取已解锁的成就
   const unlockedAchievements = wx.getStorageSync('achievements') || {};
+  const newlyUnlocked = [];
 
   const updatedAchievements = ACHIEVEMENT_CONFIG.map(achievement => {
     const isUnlocked = unlockedAchievements[achievement.id] || false;
@@ -654,16 +870,16 @@ function checkAndUpdateAchievements(punchRecords, stats) {
     // 检查是否满足解锁条件
     const shouldUnlock = achievement.condition(stats, punchRecords);
 
-    // 如果新解锁，保存到存储并显示通知
+    // 如果新解锁，先记录到临时变量，最后统一写存储
     if (shouldUnlock) {
       unlockedAchievements[achievement.id] = true;
-      wx.setStorageSync('achievements', unlockedAchievements);
 
-      // 显示成就解锁提示
-      wx.showToast({
-        title: `成就解锁：${achievement.name}`,
-        icon: 'success',
-        duration: 3000,
+      // 记录新解锁的成就
+      newlyUnlocked.push({
+        id: achievement.id,
+        name: achievement.name,
+        icon: achievement.icon,
+        description: achievement.description
       });
 
       // 返回简化对象（不含condition函数）
@@ -676,7 +892,15 @@ function checkAndUpdateAchievements(punchRecords, stats) {
     return { ...achievementData, unlocked: false };
   });
 
-  return updatedAchievements;
+  // 统一写一次存储（只有当有新解锁的成就时才写）
+  if (newlyUnlocked.length > 0) {
+    wx.setStorageSync('achievements', unlockedAchievements);
+  }
+
+  return {
+    achievements: updatedAchievements,
+    newlyUnlocked: newlyUnlocked
+  };
 }
 
 /**
@@ -686,7 +910,8 @@ function checkAndUpdateAchievements(punchRecords, stats) {
  * @returns {Array} 成就列表
  */
 function getUserAchievements(punchRecords, stats) {
-  return checkAndUpdateAchievements(punchRecords, stats);
+  const result = checkAndUpdateAchievements(punchRecords, stats);
+  return result.achievements;
 }
 
 /**
@@ -705,7 +930,8 @@ function getUnlockedAchievementCount() {
  * @returns {Object} 成就进度信息
  */
 function getAchievementProgress(punchRecords, stats) {
-  const achievements = checkAndUpdateAchievements(punchRecords, stats);
+  const result = checkAndUpdateAchievements(punchRecords, stats);
+  const achievements = result.achievements;
   const total = achievements.length;
   const unlocked = achievements.filter(a => a.unlocked).length;
 
@@ -713,7 +939,8 @@ function getAchievementProgress(punchRecords, stats) {
     total,
     unlocked,
     progress: total > 0 ? Math.round((unlocked / total) * 100) : 0,
-    achievements
+    achievements,
+    newlyUnlocked: result.newlyUnlocked
   };
 }
 
@@ -744,4 +971,9 @@ module.exports = {
   getUserAchievements,
   getUnlockedAchievementCount,
   getAchievementProgress,
+  getCustomPlanParts,
+  isCustomPlan,
+  getPlanName,
+  suggestRestDay,
+  shouldRestTomorrow,
 };

@@ -14,8 +14,14 @@
     data-plan="fiveSplit"
   >
     <view class="plan-header">
-      <text class="plan-name">五分化训练</text>
-      <text class="plan-tag">经典</text>
+      <view>
+        <text class="plan-name">五分化训练</text>
+        <view class="plan-tags">
+          <text class="plan-tag">经典</text>
+          <text class="plan-tag weekly">每周5天</text>
+        </view>
+      </view>
+      <text class="check-icon" wx:if="{{selectedPlan === 'fiveSplit'}}">✓</text>
     </view>
     <text class="plan-desc">按「胸 → 背 → 肩 → 臂 → 腿」的顺序循环，每天对应 1 个部位</text>
     <view class="plan-parts">
@@ -27,7 +33,6 @@
     </view>
     <view class="plan-footer">
       <text class="plan-tip">适合有经验的健身爱好者</text>
-      <text class="check-icon" wx:if="{{selectedPlan === 'fiveSplit'}}">✓</text>
     </view>
   </view>
 
@@ -38,8 +43,14 @@
     data-plan="threeSplit"
   >
     <view class="plan-header">
-      <text class="plan-name">三分化训练</text>
-      <text class="plan-tag">高效</text>
+      <view>
+        <text class="plan-name">三分化训练</text>
+        <view class="plan-tags">
+          <text class="plan-tag">高效</text>
+          <text class="plan-tag weekly">每周3-4天</text>
+        </view>
+      </view>
+      <text class="check-icon" wx:if="{{selectedPlan === 'threeSplit'}}">✓</text>
     </view>
     <text class="plan-desc">按「推（胸 + 肩 + 三头） → 拉（背 + 二头） → 腿」的顺序循环，每天对应 1 个组合部位</text>
     <view class="plan-parts">
@@ -49,7 +60,35 @@
     </view>
     <view class="plan-footer">
       <text class="plan-tip">适合时间有限的上班族</text>
-      <text class="check-icon" wx:if="{{selectedPlan === 'threeSplit'}}">✓</text>
+    </view>
+  </view>
+
+  <!-- 自主计划选项 -->
+  <view
+    class="plan-option {{selectedPlan === 'customPlan' ? 'selected' : ''}}"
+    bindtap="selectPlan"
+    data-plan="customPlan"
+  >
+    <view class="plan-header">
+      <view>
+        <text class="plan-name">自主计划</text>
+        <view class="plan-tags">
+          <text class="plan-tag">灵活</text>
+          <text class="plan-tag weekly">自定频率</text>
+        </view>
+      </view>
+      <text class="check-icon" wx:if="{{selectedPlan === 'customPlan'}}">✓</text>
+    </view>
+    <text class="plan-desc">完全自主选择训练部位，灵活安排训练计划</text>
+    <view class="plan-parts">
+      <text class="part-tag">胸</text>
+      <text class="part-tag">背</text>
+      <text class="part-tag">肩</text>
+      <text class="part-tag">腿</text>
+      <text class="part-tag">休息</text>
+    </view>
+    <view class="plan-footer">
+      <text class="plan-tip">适合有经验的健身者或需要灵活安排的用户</text>
     </view>
   </view>
 

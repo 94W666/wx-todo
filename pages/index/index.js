@@ -16,6 +16,8 @@ Page({
     planDescription: '', // 计划描述
     progressPercent: 0, // 训练进度百分比
     switchingPage: false, // 页面切换状态，防止重复点击
+    loading: true, // 页面加载状态，防止超时
+    isUpdating: false, // 数据更新状态，防止重复更新
 
     // 段位系统和热力图相关字段
     currentStreak: 0, // 当前连续打卡天数
@@ -53,7 +55,13 @@ Page({
     recentAchievements: [],        // 最近解锁的成就（最近3个）
     sleepRecordsCount: 0,           // 睡眠记录数量
     showAchievementModal: false,    // 成就浮窗显示状态
-    allAchievements: []             // 所有成就列表
+    allAchievements: [],            // 所有成就列表
+
+    // 自主计划相关字段
+    showPartSelector: false,        // 是否显示部位选择器
+    selectedPart: '',               // 用户选择的部位
+    customPlanParts: [],            // 自定义计划可选的部位列表
+    lastPunchPart: ''               // 上次打卡部位（用于快速重复）
   },
 
   /**
@@ -71,16 +79,15 @@ Page({
   },
 
   /**
-   * 更新页面数据
+   * 更新页面数据（所有数据一次性计算并更新）
    */
   updatePageData: function () {
-    // 获取当前日期
     const date = new Date();
     const currentDate = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
 
     // 获取训练计划和打卡记录
     const plan = wx.getStorageSync('trainingPlan') || 'fiveSplit';
-    const planName = plan === 'fiveSplit' ? '五分化训练' : '三分化训练';
+    const planName = util.getPlanName(plan);
     const punchRecords = wx.getStorageSync('punchRecords') || {};
     const todayKey = util.getDateKey();
     const isPunchedToday = !!punchRecords[todayKey];
@@ -93,47 +100,41 @@ Page({
     let todayPart = currentPart;
     let tomorrowPart = util.getNextPart(currentPart, plan);
 
-    // 如果今天已打卡，今日部位使用打卡记录中的部位（与currentPart一致），明日部位是今日部位的下一个部位
     if (isPunchedToday) {
       todayPart = punchRecords[todayKey].part;
       tomorrowPart = util.getNextPart(todayPart, plan);
     }
 
+    // 计算连续打卡天数和段位
+    const { currentStreak, longestStreak } = util.calculateStreakDays(punchRecords);
+
+    // 检查明天是否建议休息
+    const shouldRest = util.shouldRestTomorrow(punchRecords, plan, isPunchedToday, currentStreak);
+    if (shouldRest) {
+      tomorrowPart = '建议休息';
+    }
+
     // 计划描述
     const planDescription = plan === 'fiveSplit'
       ? '胸 → 背 → 肩 → 臂 → 腿，每天一个部位循环'
-      : '推（胸+肩+三头） → 拉（背+二头） → 腿，每天一个组合部位循环';
+      : plan === 'threeSplit'
+      ? '推（胸+肩+三头） → 拉（背+二头） → 腿，每天一个组合部位循环'
+      : '完全自主选择训练部位，灵活安排训练计划';
 
-    // 计算训练进度
-    const progressPercent = util.calculateProgress(punchRecords, plan);
-
-    // 计算连续打卡天数和段位
-    const { currentStreak, longestStreak } = util.calculateStreakDays(punchRecords);
     const userRank = util.calculateRank(currentStreak);
 
-    // 获取热力图数据
-    const heatmapYear = this.data.heatmapYear || date.getFullYear();
-    const heatmapMonth = this.data.heatmapMonth || date.getMonth() + 1;
-    const heatmapData = util.generateHeatmapData(punchRecords, heatmapYear, heatmapMonth);
-    const heatmapMonthText = `${heatmapYear}年${heatmapMonth}月`;
-
     // 计算统计数据
-    const totalPunchDays = util.calculateTotalPunchDays(punchRecords);
     const partStats = util.calculatePartStats(punchRecords);
+    const totalPunchDays = Object.keys(punchRecords).length;
     const monthlyStats = util.calculateMonthlyStats(punchRecords, date.getFullYear(), date.getMonth() + 1);
     const frequencyStats = util.calculateFrequencyStats(punchRecords);
     const planExecutionStats = util.calculatePlanExecutionStats(punchRecords);
 
-    // 获取睡眠记录数量
-    const sleepRecords = wx.getStorageSync('sleepRecords') || [];
-    const sleepRecordsCount = sleepRecords.length;
-
-    // 计算部位统计的显示宽度（最大200rpx）
+    // 计算部位统计的显示宽度
     const partStatsWithWidth = {};
     if (totalPunchDays > 0) {
       Object.keys(partStats).forEach(part => {
         const count = partStats[part];
-        // 计算宽度比例，最大200rpx
         const width = Math.min((count / totalPunchDays) * 200, 200);
         partStatsWithWidth[part] = {
           count: count,
@@ -142,25 +143,37 @@ Page({
       });
     }
 
-    // 检查成就解锁状态
-    const stats = {
+    // 获取睡眠记录数量
+    const sleepRecords = wx.getStorageSync('sleepRecords') || [];
+    const sleepRecordsCount = sleepRecords.length;
+
+    // 计算进度
+    const progressPercent = util.calculateProgress(punchRecords, plan, currentStreak, partStats);
+
+    // 热力图数据
+    const heatmapYear = date.getFullYear();
+    const heatmapMonth = date.getMonth() + 1;
+    const heatmapMonthText = `${heatmapYear}年${heatmapMonth}月`;
+    const heatmapData = util.generateHeatmapData(punchRecords, heatmapYear, heatmapMonth);
+
+    // 成就数据
+    const achievementStats = {
       currentStreak,
       totalPunchDays,
-      // 可以添加其他需要的统计数据
+      partStats: partStats,
+      monthlyStats,
+      planExecutionStats
     };
-    const achievements = util.checkAndUpdateAchievements(punchRecords, stats);
-
-    // 计算成就进度
-    const unlockedAchievements = achievements.filter(a => a.unlocked);
+    const achievementResult = util.getAchievementProgress(punchRecords, achievementStats);
     const achievementProgress = {
-      unlocked: unlockedAchievements.length,
-      total: achievements.length,
-      progress: achievements.length > 0 ? Math.round((unlockedAchievements.length / achievements.length) * 100) : 0
+      unlocked: achievementResult.unlocked,
+      total: achievementResult.total,
+      progress: achievementResult.progress
     };
+    const recentAchievements = achievementResult.newlyUnlocked || [];
+    const allAchievements = achievementResult.achievements || [];
 
-    // 获取最近解锁的成就（最多3个）
-    const recentAchievements = unlockedAchievements.slice(-3).reverse(); // 最近解锁的放在前面
-
+    // 一次性更新所有数据
     this.setData({
       currentDate,
       planName,
@@ -170,8 +183,6 @@ Page({
       punchTime,
       planDescription,
       progressPercent,
-
-      // 段位系统和热力图数据
       currentStreak,
       longestStreak,
       userRank,
@@ -179,28 +190,37 @@ Page({
       heatmapMonth,
       heatmapData,
       heatmapMonthText,
-
-      // 用户数据统计面板
       statsPanel: {
         totalPunchDays,
-        partStats: partStatsWithWidth, // 使用带宽度的版本
+        partStats: partStatsWithWidth,
         monthlyStats,
         frequencyStats,
         planExecutionStats
       },
-
-      // 成就系统数据
+      sleepRecordsCount,
       achievementProgress,
       recentAchievements,
-
-      // 成就系统数据
-      allAchievements: achievements,
-
-      // 睡眠记录数量
-      sleepRecordsCount
+      allAchievements,
+      loading: false
     });
   },
 
+  /**
+   * 重复上次打卡部位
+   */
+  repeatLastPart: function () {
+    if (!this.data.lastPunchPart) {
+      wx.showToast({
+        title: '暂无历史打卡记录',
+        icon: 'none',
+        duration: 2000
+      });
+      return;
+    }
+    this.setData({
+      selectedPart: this.data.lastPunchPart
+    });
+  },
 
   /**
    * 打卡按钮点击事件
@@ -210,6 +230,26 @@ Page({
       return;
     }
 
+    const plan = wx.getStorageSync('trainingPlan') || 'fiveSplit';
+
+    // 自定义计划需要选择部位
+    if (plan === 'customPlan') {
+      this.setData({
+        showPartSelector: true,
+        selectedPart: ''  // 重置选择
+      });
+      return;
+    }
+
+    // 原有计划直接打卡
+    this.performPunch(this.data.todayPart);
+  },
+
+  /**
+   * 执行打卡
+   * @param {string} part 训练部位
+   */
+  performPunch: function (part) {
     // 记录打卡时间
     const now = new Date();
     const punchTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
@@ -218,16 +258,25 @@ Page({
     const punchRecords = wx.getStorageSync('punchRecords') || {};
     const todayKey = util.getDateKey();
 
+    // 检查今日是否已打卡，防止重复覆盖
+    if (punchRecords[todayKey]) {
+      wx.showToast({
+        title: '今日已打卡',
+        icon: 'none',
+        duration: 2000,
+      });
+      return;
+    }
+
     // 更新打卡记录
     punchRecords[todayKey] = {
       time: punchTime,
-      part: this.data.todayPart,
+      part: part,
       plan: wx.getStorageSync('trainingPlan'),
     };
     wx.setStorageSync('punchRecords', punchRecords);
 
     // 注意：不再在打卡时更新currentPart，而是在updatePageData中根据日期智能更新
-
 
     // 显示打卡成功提示
     wx.showToast({
@@ -242,6 +291,56 @@ Page({
     }, 1500);
   },
 
+  /**
+   * 显示部位选择器
+   */
+  showPartSelector: function () {
+    this.setData({
+      showPartSelector: true,
+      selectedPart: ''
+    });
+  },
+
+  /**
+   * 选择训练部位
+   */
+  selectPart: function (e) {
+    const part = e.currentTarget.dataset.part;
+    this.setData({
+      selectedPart: part
+    });
+  },
+
+  /**
+   * 确认自定义计划打卡
+   */
+  confirmCustomPunch: function () {
+    if (!this.data.selectedPart) {
+      wx.showToast({
+        title: '请先选择训练部位',
+        icon: 'none',
+        duration: 2000
+      });
+      return;
+    }
+
+    this.setData({
+      showPartSelector: false
+    });
+
+    // 执行打卡
+    this.performPunch(this.data.selectedPart);
+  },
+
+  /**
+   * 取消部位选择
+   */
+  cancelPartSelection: function () {
+    this.setData({
+      showPartSelector: false,
+      selectedPart: ''
+    });
+  },
 
   /**
    * 切换到计划页面
@@ -384,7 +483,7 @@ Page({
     if (punchInfo) {
       wx.showModal({
         title: `${date}打卡详情`,
-        content: `时间：${punchInfo.time}\n部位：${punchInfo.part}\n计划：${punchInfo.plan === 'fiveSplit' ? '五分化' : '三分化'}`,
+        content: `时间：${punchInfo.time}\n部位：${punchInfo.part}\n计划：${punchInfo.plan === 'fiveSplit' ? '五分化' : punchInfo.plan === 'threeSplit' ? '三分化' : '自主计划'}`,
         showCancel: false,
         confirmText: '知道了',
       });
@@ -403,6 +502,27 @@ Page({
   showAchievementModal: function () {
     this.setData({
       showAchievementModal: true
+    });
+  },
+
+  /**
+   * 显示新解锁的成就提示
+   * @param {Array} newlyUnlocked 新解锁的成就列表
+   */
+  showNewAchievements: function (newlyUnlocked) {
+    if (!newlyUnlocked || newlyUnlocked.length === 0) {
+      return;
+    }
+
+    // 逐个显示成就解锁提示，每次间隔800ms
+    newlyUnlocked.forEach((achievement, index) => {
+      setTimeout(() => {
+        wx.showToast({
+          title: `成就解锁：${achievement.name}`,
+          icon: 'success',
+          duration: 2000,
+        });
+      }, index * 800);
     });
   },
 

@@ -893,3 +893,205 @@
   font-style: italic;
 }
 
+/* ==================== 自主计划部位选择器样式 ==================== */
+.part-selector-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.part-selector {
+  width: 90%;
+  max-width: 600rpx;
+  background-color: #ffffff;
+  border-radius: 24rpx;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.3);
+  box-sizing: border-box;
+}
+
+/* 标题栏 */
+.selector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32rpx;
+  border-bottom: 1rpx solid #eeeeee;
+  background-color: #e6f7e6;
+}
+
+.selector-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #52c41a;
+}
+
+.selector-close {
+  font-size: 48rpx;
+  color: #999999;
+  width: 60rpx;
+  height: 60rpx;
+  text-align: center;
+  line-height: 60rpx;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.selector-close:active {
+  background-color: #eeeeee;
+  color: #666666;
+}
+
+/* 部位列表 */
+.parts-list {
+  flex: 1;
+  max-height: 500rpx;
+  padding: 0rpx 32rpx 24rpx;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* 快速操作 */
+.quick-actions {
+  padding: 24rpx 0 16rpx;
+  border-bottom: 1rpx solid #eeeeee;
+  margin: 0 32rpx;
+}
+
+.repeat-last {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 20rpx 24rpx;
+  background-color: #f0f9ff;
+  border: 2rpx solid #1890ff;
+  border-radius: 16rpx;
+  transition: all 0.2s;
+}
+
+.repeat-last:active {
+  background-color: #e6f7ff;
+  transform: scale(0.98);
+}
+
+.repeat-icon {
+  font-size: 28rpx;
+  color: #1890ff;
+  font-weight: bold;
+}
+
+.repeat-text {
+  font-size: 26rpx;
+  color: #1890ff;
+  font-weight: 600;
+}
+
+/* 部位网格 */
+.parts-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  padding-top: 24rpx;
+  justify-content: center; /* 添加此行使网格项目整体居中 */
+}
+
+.part-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* 移除gap: 12rpx，因为现在只有一个元素 */
+  padding: 40rpx 16rpx; /* 增加垂直padding，使文字在盒子中更居中 */
+  border-radius: 16rpx;
+  border: 2rpx solid #eeeeee;
+  background-color: #fafafa;
+  transition: all 0.2s;
+  box-sizing: border-box;
+  width: calc(50% - 8rpx);
+  overflow: hidden;
+  min-height: 120rpx; /* 添加最小高度，确保视觉平衡 */
+}
+
+.part-item:active {
+  background-color: #f0f0f0;
+  transform: scale(0.98);
+}
+
+.part-item.selected {
+  border-color: #52c41a;
+  background-color: #e6f7e6;
+  transform: scale(1.02); /* 添加轻微放大效果 */
+  box-shadow: 0 4rpx 12rpx rgba(82, 196, 26, 0.2);
+}
+
+
+.part-name {
+  font-size: 28rpx; /* 从26rpx增加到28rpx */
+  font-weight: bold;
+  color: #333333;
+  word-wrap: break-word;
+  word-break: break-word;
+  text-align: center;
+  line-height: 1.2;
+  /* 添加flex属性确保在flex容器中正确居中 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.check-icon {
+  font-size: 24rpx;
+  font-weight: bold;
+  color: #52c41a;
+  width: 40rpx;
+  height: 40rpx;
+  text-align: center;
+  line-height: 40rpx;
+  border-radius: 50%;
+  background-color: #ffffff;
+  border: 2rpx solid #52c41a;
+  flex-shrink: 0;
+}
+
+/* 确认按钮 */
+.selector-footer {
+  padding: 24rpx 32rpx;
+  border-top: 1rpx solid #eeeeee;
+  text-align: center;
+  background-color: #e6f7e6;
+}
+
+.btn-confirm {
+  background: linear-gradient(135deg, #87d068, #52c41a);
+  color: #ffffff;
+  font-size: 32rpx;
+  font-weight: bold;
+  padding: 24rpx 48rpx;
+  border-radius: 80rpx;
+  box-shadow: 0 8rpx 24rpx rgba(82, 196, 26, 0.3);
+  border: none;
+  width: 100%;
+  max-width: 500rpx;
+}
+
+.btn-confirm[disabled] {
+  background: #cccccc;
+  box-shadow: none;
+  opacity: 0.7;
+}
+
+.btn-confirm:active:not([disabled]) {
+  transform: scale(0.96);
+  box-shadow: 0 4rpx 12rpx rgba(82, 196, 26, 0.4);
+}
+

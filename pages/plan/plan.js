@@ -2,6 +2,13 @@
 
 const util = require('../../utils/util.js');
 
+// 计划描述映射
+const PLAN_DESCRIPTIONS = {
+  'fiveSplit': '胸 → 背 → 肩 → 臂 → 腿，每天一个部位循环',
+  'threeSplit': '推（胸+肩+三头） → 拉（背+二头） → 腿，每天一个组合部位循环',
+  'customPlan': '完全自主选择训练部位，灵活安排训练计划'
+};
+
 Page({
   /**
    * 页面的初始数据
@@ -37,7 +44,7 @@ Page({
     const currentPart = util.getCurrentPart(punchRecords, plan);
     const nextPart = util.getNextPart(currentPart, plan);
 
-    const planName = plan === 'fiveSplit' ? '五分化训练' : '三分化训练';
+    const planName = util.getPlanName(plan);
 
     this.setData({
       currentPlan: plan,
@@ -102,15 +109,20 @@ Page({
     // 保存新计划
     wx.setStorageSync('trainingPlan', plan);
 
-    // 重置训练部位
+    // 重置训练部位（自定义计划不需要设置固定部位）
     let firstPart = '胸';
     if (plan === 'threeSplit') {
       firstPart = '推';
+    } else if (plan === 'customPlan') {
+      firstPart = ''; // 自主计划不设置默认部位
     }
     wx.setStorageSync('currentPart', firstPart);
 
     // 清空打卡记录，重置进度
     wx.removeStorageSync('punchRecords');
+
+    // 清空成就记录，确保新计划下成就系统从零开始
+    wx.removeStorageSync('achievements');
 
     // 显示成功提示
     wx.showToast({

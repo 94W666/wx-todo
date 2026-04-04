@@ -32,7 +32,7 @@ Page({
     const records = wx.getStorageSync('sleepRecords') || [];
 
     // 只显示最近7天记录
-    const recentRecords = records.slice(-7).map(record => {
+    const recentRecords = records.slice(0, 7).map(record => {
       // 转换日期格式
       const date = new Date(record.date);
       const month = date.getMonth() + 1;

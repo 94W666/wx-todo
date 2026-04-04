@@ -16,7 +16,8 @@
   <!-- 今日训练部位卡片 -->
   <view class="card training-card">
     <text class="label">今日训练部位</text>
-    <text class="today-part">{{todayPart}}</text>
+    <text class="today-part" wx:if="{{planName !== '自主计划'}}">{{todayPart}}</text>
+    <text class="today-part" wx:else>{{selectedPart || '请选择部位'}}</text>
     <text class="tip">加油！坚持就是胜利！</text>
   </view>
 
@@ -298,6 +299,47 @@
       <!-- 浮窗底部按钮 -->
       <view class="modal-footer">
         <text class="modal-tip">坚持打卡，解锁更多成就！</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 部位选择器模态框 -->
+  <view class="part-selector-mask" wx:if="{{showPartSelector}}" bindtap="cancelPartSelection">
+    <view class="part-selector" catchtap="stopPropagation">
+      <!-- 标题 -->
+      <view class="selector-header">
+        <text class="selector-title">选择训练部位</text>
+        <text class="selector-close" bindtap="cancelPartSelection">×</text>
+      </view>
+
+      <!-- 快速操作 -->
+      <view class="quick-actions" wx:if="{{lastPunchPart}}">
+        <view class="repeat-last" bindtap="repeatLastPart">
+          <text class="repeat-icon">↺</text>
+          <text class="repeat-text">重复上次（{{lastPunchPart}}）</text>
+        </view>
+      </view>
+
+      <!-- 部位列表 -->
+      <scroll-view class="parts-list" scroll-y>
+        <view class="parts-grid">
+          <block wx:for="{{customPlanParts}}" wx:key="index">
+            <view
+              class="part-item {{selectedPart === item ? 'selected' : ''}}"
+              bindtap="selectPart"
+              data-part="{{item}}"
+            >
+              <text class="part-name">{{item}}</text>
+            </view>
+          </block>
+        </view>
+      </scroll-view>
+
+      <!-- 确认按钮 -->
+      <view class="selector-footer">
+        <button class="btn-confirm" bindtap="confirmCustomPunch" disabled="{{!selectedPart}}">
+          确认打卡
+        </button>
       </view>
     </view>
   </view>
