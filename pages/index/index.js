@@ -105,6 +105,12 @@ Page({
       tomorrowPart = util.getNextPart(todayPart, plan);
     }
 
+    // 自主计划：从今日打卡记录恢复已选部位
+    let selectedPart = '';
+    if (plan === 'customPlan' && isPunchedToday) {
+      selectedPart = punchRecords[todayKey].part;
+    }
+
     // 计算连续打卡天数和段位
     const { currentStreak, longestStreak } = util.calculateStreakDays(punchRecords);
 
@@ -116,9 +122,9 @@ Page({
 
     // 计划描述
     const planDescription = plan === 'fiveSplit'
-      ? '胸 → 背 → 肩 → 臂 → 腿，每天一个部位循环'
+      ? '胸 → 背 → 肩 → 臂 → 腿 → 休息，6天循环'
       : plan === 'threeSplit'
-      ? '推（胸+肩+三头） → 拉（背+二头） → 腿，每天一个组合部位循环'
+      ? '推 → 拉 → 腿 → 休息，4天循环'
       : '完全自主选择训练部位，灵活安排训练计划';
 
     const userRank = util.calculateRank(currentStreak);
@@ -190,6 +196,7 @@ Page({
       heatmapMonth,
       heatmapData,
       heatmapMonthText,
+      selectedPart,
       statsPanel: {
         totalPunchDays,
         partStats: partStatsWithWidth,
@@ -236,7 +243,8 @@ Page({
     if (plan === 'customPlan') {
       this.setData({
         showPartSelector: true,
-        selectedPart: ''  // 重置选择
+        selectedPart: '',  // 重置选择
+        customPlanParts: ['胸', '背', '肩', '臂', '腿', '休息']  // 设置可选部位列表
       });
       return;
     }

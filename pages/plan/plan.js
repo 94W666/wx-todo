@@ -4,8 +4,8 @@ const util = require('../../utils/util.js');
 
 // 计划描述映射
 const PLAN_DESCRIPTIONS = {
-  'fiveSplit': '胸 → 背 → 肩 → 臂 → 腿，每天一个部位循环',
-  'threeSplit': '推（胸+肩+三头） → 拉（背+二头） → 腿，每天一个组合部位循环',
+  'fiveSplit': '胸 → 背 → 肩 → 臂 → 腿 → 休息，6天循环',
+  'threeSplit': '推 → 拉 → 腿 → 休息，4天循环',
   'customPlan': '完全自主选择训练部位，灵活安排训练计划'
 };
 
@@ -89,17 +89,8 @@ Page({
       return;
     }
 
-    // 确认切换计划
-    wx.showModal({
-      title: '切换计划确认',
-      content: '切换计划将重置训练进度，是否继续？',
-      confirmColor: '#52c41a',
-      success: (res) => {
-        if (res.confirm) {
-          this.switchTrainingPlan(selectedPlan);
-        }
-      },
-    });
+    // 直接切换计划
+    this.switchTrainingPlan(selectedPlan);
   },
 
   /**
@@ -118,11 +109,7 @@ Page({
     }
     wx.setStorageSync('currentPart', firstPart);
 
-    // 清空打卡记录，重置进度
-    wx.removeStorageSync('punchRecords');
-
-    // 清空成就记录，确保新计划下成就系统从零开始
-    wx.removeStorageSync('achievements');
+    // 保留打卡记录和成就系统，只切换计划
 
     // 显示成功提示
     wx.showToast({

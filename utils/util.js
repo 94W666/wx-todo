@@ -8,8 +8,8 @@
  */
 function getNextPart(currentPart, plan) {
   if (plan === 'fiveSplit') {
-    // 五分化训练：胸 → 背 → 肩 → 臂 → 腿
-    const fiveSplitParts = ['胸', '背', '肩', '臂', '腿'];
+    // 五分化训练：胸 → 背 → 肩 → 臂 → 腿 → 休息
+    const fiveSplitParts = ['胸', '背', '肩', '臂', '腿', '休息'];
     const currentIndex = fiveSplitParts.indexOf(currentPart);
     if (currentIndex === -1) {
       return '胸'; // 默认从胸开始
@@ -17,8 +17,8 @@ function getNextPart(currentPart, plan) {
     const nextIndex = (currentIndex + 1) % fiveSplitParts.length;
     return fiveSplitParts[nextIndex];
   } else if (plan === 'threeSplit') {
-    // 三分化训练：推 → 拉 → 腿
-    const threeSplitParts = ['推', '拉', '腿'];
+    // 三分化训练：推 → 拉 → 腿 → 休息
+    const threeSplitParts = ['推', '拉', '腿', '休息'];
     const currentIndex = threeSplitParts.indexOf(currentPart);
     if (currentIndex === -1) {
       return '推'; // 默认从推开始
@@ -451,9 +451,12 @@ function getMonthPunchData(punchRecords, year, month) {
   for (let day = 1; day <= daysInMonth; day++) {
     const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const hasPunch = !!punchRecords[dateKey];
+    const date = new Date(year, month - 1, day);
+    const weekday = date.getDay(); // 0=周日, 6=周六
     result.push({
       date: dateKey,
       day: day,
+      weekday: weekday,
       hasPunch: hasPunch,
       punchInfo: hasPunch ? punchRecords[dateKey] : null
     });
@@ -485,6 +488,7 @@ function generateHeatmapData(punchRecords, year, month) {
     result.push({
       date: null,
       day: '',
+      weekday: i,
       hasPunch: false,
       isToday: false,
       isCurrentMonth: false,
@@ -523,6 +527,7 @@ function generateHeatmapData(punchRecords, year, month) {
     result.push({
       date: item.date,
       day: item.day,
+      weekday: item.weekday,
       hasPunch: item.hasPunch,
       isToday: isToday,
       isCurrentMonth: true,
