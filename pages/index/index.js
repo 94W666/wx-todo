@@ -2,6 +2,19 @@
 
 const util = require('../../utils/util.js');
 
+// 自主计划部位配置：包含名称和图标
+const CUSTOM_PLAN_PARTS = [
+  { name: '胸', icon: '💪' },
+  { name: '背', icon: '🔙' },
+  { name: '肩', icon: '🎯' },
+  { name: '臂', icon: '💪' },
+  { name: '腿', icon: '🦵' },
+  { name: '推', icon: '👉' },
+  { name: '拉', icon: '👈' },
+  { name: '蹲', icon: '⬇️' },
+  { name: '休息', icon: '😴' },
+];
+
 Page({
   /**
    * 页面的初始数据
@@ -14,7 +27,6 @@ Page({
     isPunchedToday: false, // 今日是否已打卡
     punchTime: '', // 打卡时间
     planDescription: '', // 计划描述
-    progressPercent: 0, // 训练进度百分比
     switchingPage: false, // 页面切换状态，防止重复点击
     loading: true, // 页面加载状态，防止超时
     isUpdating: false, // 数据更新状态，防止重复更新
@@ -45,17 +57,6 @@ Page({
       frequencyStats: {},          // 训练频率统计
       planExecutionStats: {}       // 计划执行统计
     },
-
-    // 成就系统字段
-    achievementProgress: {
-      unlocked: 0,
-      total: 0,
-      progress: 0
-    },
-    recentAchievements: [],        // 最近解锁的成就（最近3个）
-    sleepRecordsCount: 0,           // 睡眠记录数量
-    showAchievementModal: false,    // 成就浮窗显示状态
-    allAchievements: [],            // 所有成就列表
 
     // 自主计划相关字段
     showPartSelector: false,        // 是否显示部位选择器
@@ -111,6 +112,9 @@ Page({
       selectedPart = punchRecords[todayKey].part;
     }
 
+    // 获取上次打卡部位
+    const lastPunchPart = wx.getStorageSync('lastPunchPart') || '';
+
     // 计算连续打卡天数和段位
     const { currentStreak, longestStreak } = util.calculateStreakDays(punchRecords);
 
@@ -149,35 +153,11 @@ Page({
       });
     }
 
-    // 获取睡眠记录数量
-    const sleepRecords = wx.getStorageSync('sleepRecords') || [];
-    const sleepRecordsCount = sleepRecords.length;
-
-    // 计算进度
-    const progressPercent = util.calculateProgress(punchRecords, plan, currentStreak, partStats);
-
     // 热力图数据
     const heatmapYear = date.getFullYear();
     const heatmapMonth = date.getMonth() + 1;
     const heatmapMonthText = `${heatmapYear}年${heatmapMonth}月`;
     const heatmapData = util.generateHeatmapData(punchRecords, heatmapYear, heatmapMonth);
-
-    // 成就数据
-    const achievementStats = {
-      currentStreak,
-      totalPunchDays,
-      partStats: partStats,
-      monthlyStats,
-      planExecutionStats
-    };
-    const achievementResult = util.getAchievementProgress(punchRecords, achievementStats);
-    const achievementProgress = {
-      unlocked: achievementResult.unlocked,
-      total: achievementResult.total,
-      progress: achievementResult.progress
-    };
-    const recentAchievements = achievementResult.newlyUnlocked || [];
-    const allAchievements = achievementResult.achievements || [];
 
     // 一次性更新所有数据
     this.setData({
@@ -188,7 +168,6 @@ Page({
       isPunchedToday,
       punchTime,
       planDescription,
-      progressPercent,
       currentStreak,
       longestStreak,
       userRank,
@@ -197,6 +176,7 @@ Page({
       heatmapData,
       heatmapMonthText,
       selectedPart,
+      lastPunchPart,
       statsPanel: {
         totalPunchDays,
         partStats: partStatsWithWidth,
@@ -204,10 +184,6 @@ Page({
         frequencyStats,
         planExecutionStats
       },
-      sleepRecordsCount,
-      achievementProgress,
-      recentAchievements,
-      allAchievements,
       loading: false
     });
   },
@@ -224,6 +200,7 @@ Page({
       });
       return;
     }
+    // 直接使用上次部位名称
     this.setData({
       selectedPart: this.data.lastPunchPart
     });
@@ -244,7 +221,7 @@ Page({
       this.setData({
         showPartSelector: true,
         selectedPart: '',  // 重置选择
-        customPlanParts: ['胸', '背', '肩', '臂', '腿', '休息']  // 设置可选部位列表
+        customPlanParts: CUSTOM_PLAN_PARTS  // 设置可选部位列表
       });
       return;
     }
@@ -313,9 +290,9 @@ Page({
    * 选择训练部位
    */
   selectPart: function (e) {
-    const part = e.currentTarget.dataset.part;
+    const partName = e.currentTarget.dataset.part;
     this.setData({
-      selectedPart: part
+      selectedPart: partName
     });
   },
 
@@ -332,12 +309,17 @@ Page({
       return;
     }
 
+    // 保存上次打卡部位，用于快速重复
+    const lastPart = this.data.selectedPart;
+    wx.setStorageSync('lastPunchPart', lastPart);
+
     this.setData({
-      showPartSelector: false
+      showPartSelector: false,
+      lastPunchPart: lastPart
     });
 
     // 执行打卡
-    this.performPunch(this.data.selectedPart);
+    this.performPunch(lastPart);
   },
 
   /**
@@ -502,45 +484,6 @@ Page({
         duration: 1500,
       });
     }
-  },
-
-  /**
-   * 显示成就系统浮窗
-   */
-  showAchievementModal: function () {
-    this.setData({
-      showAchievementModal: true
-    });
-  },
-
-  /**
-   * 显示新解锁的成就提示
-   * @param {Array} newlyUnlocked 新解锁的成就列表
-   */
-  showNewAchievements: function (newlyUnlocked) {
-    if (!newlyUnlocked || newlyUnlocked.length === 0) {
-      return;
-    }
-
-    // 逐个显示成就解锁提示，每次间隔800ms
-    newlyUnlocked.forEach((achievement, index) => {
-      setTimeout(() => {
-        wx.showToast({
-          title: `成就解锁：${achievement.name}`,
-          icon: 'success',
-          duration: 2000,
-        });
-      }, index * 800);
-    });
-  },
-
-  /**
-   * 隐藏成就系统浮窗
-   */
-  hideAchievementModal: function () {
-    this.setData({
-      showAchievementModal: false
-    });
   },
 
   /**

@@ -40,12 +40,6 @@ App({
       });
     }
 
-    // 检查是否有成就数据，如果没有则初始化
-    const achievements = wx.getStorageSync('achievements');
-    if (!achievements) {
-      wx.setStorageSync('achievements', {});
-    }
-
   },
 
   globalData: {

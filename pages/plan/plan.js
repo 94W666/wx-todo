@@ -2,13 +2,6 @@
 
 const util = require('../../utils/util.js');
 
-// 计划描述映射
-const PLAN_DESCRIPTIONS = {
-  'fiveSplit': '胸 → 背 → 肩 → 臂 → 腿 → 休息，6天循环',
-  'threeSplit': '推 → 拉 → 腿 → 休息，4天循环',
-  'customPlan': '完全自主选择训练部位，灵活安排训练计划'
-};
-
 Page({
   /**
    * 页面的初始数据
@@ -109,11 +102,11 @@ Page({
     }
     wx.setStorageSync('currentPart', firstPart);
 
-    // 保留打卡记录和成就系统，只切换计划
+    // 保留打卡记录，只切换计划
 
     // 显示成功提示
     wx.showToast({
-      title: '计划切换成功，进度已重置',
+      title: '计划切换成功',
       icon: 'success',
       duration: 2000,
     });

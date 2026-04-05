@@ -4,7 +4,6 @@
   <!-- 页面标题 -->
   <view class="page-title">
     <text>选择训练计划</text>
-    <text class="subtitle">选择后将从第一个部位开始计算训练进度</text>
   </view>
 
   <!-- 五分化训练选项 -->
@@ -86,7 +85,11 @@
       <text class="part-tag">胸</text>
       <text class="part-tag">背</text>
       <text class="part-tag">肩</text>
+      <text class="part-tag">臂</text>
       <text class="part-tag">腿</text>
+      <text class="part-tag">推</text>
+      <text class="part-tag">拉</text>
+      <text class="part-tag">蹲</text>
       <text class="part-tag">休息</text>
     </view>
     <view class="plan-footer">
@@ -114,7 +117,6 @@
   <!-- 注意事项 -->
   <view class="notice">
     <text class="notice-title">注意事项</text>
-    <text class="notice-item">• 切换计划将重置训练进度，请谨慎操作</text>
     <text class="notice-item">• 建议每周至少训练3次，保持连续性</text>
     <text class="notice-item">• 训练前后注意热身和拉伸，预防受伤</text>
     <text class="notice-item">• 可根据自身情况适当调整训练强度</text>
